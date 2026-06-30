@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { VendorRegister, VendorDashboard, VendorShopPage } from "./components/VendorSystem";
 import { createClient } from "@supabase/supabase-js";
 
 // ═══════════════════════════════════════════════════
@@ -158,7 +159,7 @@ function Toast({ toast }) {
 }
 
 // ─── Navbar ───────────────────────────────────────────────────────
-function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount, points, lang, setLang }) {
+function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount, points, lang, setLang, onVendor, hasVendor }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -1178,6 +1179,8 @@ export default function App() {
   const [promoLabel, setPromoLabel] = useState("");
   const [points, setPoints] = useState(0);
   const [lang, setLang] = useState("fr");
+  const [myVendor, setMyVendor] = useState(null);
+  const [vendorPage, setVendorPage] = useState(null); // null | "register" | "dashboard" | {slug: "..."}
 
   // Charger les produits depuis Supabase
   const fetchProducts = async () => {
@@ -1195,6 +1198,20 @@ export default function App() {
   };
 
   useEffect(() => { fetchProducts(); }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("vendeurs").select("*").eq("user_id", user.id).maybeSingle().then(({ data }) => {
+      if (data) setMyVendor(data);
+    });
+  }, [user]);
+
+  // Détecter ?boutique=slug dans l'URL pour ouvrir une boutique vendeur directement
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const boutiqueSlug = params.get("boutique");
+    if (boutiqueSlug) setVendorPage({ slug: boutiqueSlug });
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -1331,10 +1348,13 @@ Merci pour votre commande! 🙏`;
   return (
     <>
       <Toast toast={toast} />
-      <Navbar page={page} setPage={(p) => { setShowProfile(false); setSelectedProduct(null); setPage(p); }} cartCount={cartCount} user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} onProfile={() => { setShowProfile(true); setSelectedProduct(null); }} favCount={favorites.length} points={points} lang={lang} setLang={setLang} />
+      <Navbar page={page} setPage={(p) => { setShowProfile(false); setSelectedProduct(null); setVendorPage(null); setPage(p); }} cartCount={cartCount} user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} onProfile={() => { setShowProfile(true); setSelectedProduct(null); setVendorPage(null); }} favCount={favorites.length} points={points} lang={lang} setLang={setLang} onVendor={() => setVendorPage(myVendor ? "dashboard" : "register")} hasVendor={!!myVendor} />
       {page === "shop"    && !selectedProduct && !showProfile && <ShopPage products={products} onAdd={addToCart} onSelect={setSelectedProduct} favorites={favorites} onToggleFav={toggleFavorite} isFavorite={isFavorite} />}
       {page === "shop"    && selectedProduct  && !showProfile && <ProductDetailPage product={selectedProduct} onAdd={(p) => { addToCart(p); }} onBack={() => setSelectedProduct(null)} isFavorite={isFavorite} onToggleFav={toggleFavorite} />}
       {showProfile && <ProfilePage user={user} orders={orders} favorites={favorites} onClose={() => setShowProfile(false)} onSelect={(p) => { setShowProfile(false); setPage("shop"); setSelectedProduct(p); }} />}
+      {vendorPage === "register" && <VendorRegister supabase={supabase} user={user} onDone={(v) => { setMyVendor(v); setVendorPage("dashboard"); }} onBack={() => setVendorPage(null)} />}
+      {vendorPage === "dashboard" && myVendor && <VendorDashboard supabase={supabase} vendor={myVendor} onBack={() => setVendorPage(null)} />}
+      {vendorPage && typeof vendorPage === "object" && vendorPage.slug && <VendorShopPage supabase={supabase} slug={vendorPage.slug} onAdd={addToCart} onBack={() => { setVendorPage(null); window.history.replaceState({}, "", "/"); }} />}
       {page === "cart"    && <CartPage    cart={cart} onRemove={removeFromCart} onUpdateQty={updateQty} goToShop={() => setPage("shop")} goToPayment={() => setPage("payment")} promoCode={promoCode} promoDiscount={promoDiscount} promoLabel={promoLabel} onApplyPromo={applyPromo} onRemovePromo={removePromo} points={points} />}
       {page === "payment" && <PaymentPage cart={cart} onConfirm={placeOrder} promoDiscount={promoDiscount} promoCode={promoCode} />}
       {page === "orders"  && <OrdersPage  orders={orders} loading={loadingOrders} />}
