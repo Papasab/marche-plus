@@ -116,14 +116,14 @@ function ProductImage({ src, alt, height = 120 }) {
 
   if (error || !src) {
     return (
-      <div style={{ background: "#f8f7f4", height, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48 }}>
+      <div style={{ background: "#FFF8F3", height, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48 }}>
         🛍
       </div>
     );
   }
   return (
     <div
-      style={{ height, overflow: "hidden", background: "#f8f7f4", cursor: "zoom-in" }}
+      style={{ height, overflow: "hidden", background: "#FFF8F3", cursor: "zoom-in" }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onTouchStart={() => setHovered(true)}
@@ -286,7 +286,7 @@ function AuthPage({ onAuth }) {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f8f7f4", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+    <div style={{ minHeight: "100vh", background: "#FFF8F3", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <div style={{ background: "#fff", borderRadius: 20, border: "1px solid #ebebeb", padding: "40px 36px", width: "100%", maxWidth: 420, boxShadow: "0 8px 40px rgba(0,0,0,0.08)" }}>
         <div style={{ textAlign: "center", marginBottom: 28 }}>
           <div style={{ fontSize: 48, marginBottom: 8 }}>🛍</div>
@@ -341,7 +341,7 @@ function AuthPage({ onAuth }) {
         )}
 
         <button onClick={handleSubmit} disabled={loading} style={{
-          width: "100%", background: "#1a1a1a", color: "#fff", border: "none",
+          width: "100%", background: "#FF6B00", color: "#fff", border: "none",
           padding: "14px", borderRadius: 12, fontWeight: 700, fontSize: 15,
           opacity: loading ? 0.7 : 1,
         }}>
@@ -395,7 +395,7 @@ function ProductDetailPage({ product, onAdd, onBack, isFavorite, onToggleFav }) 
         {/* Galerie photos */}
         <div>
           {/* Photo principale */}
-          <div style={{ borderRadius: 16, overflow: "hidden", background: "#f8f7f4", marginBottom: 12, height: 340 }}>
+          <div style={{ borderRadius: 16, overflow: "hidden", background: "#FFF8F3", marginBottom: 12, height: 340 }}>
             <img
               src={images[activeImg]} alt={product.name}
               style={{ width: "100%", height: "100%", objectFit: "cover", transition: "opacity 0.2s" }}
@@ -485,7 +485,7 @@ function ProductDetailPage({ product, onAdd, onBack, isFavorite, onToggleFav }) 
             </div>
             <button
               onClick={() => { for(let i = 0; i < qty; i++) onAdd(product); }}
-              style={{ flex: 1, background: "#1a1a1a", color: "#fff", border: "none", padding: "14px", borderRadius: 12, fontWeight: 700, fontSize: 15 }}
+              style={{ flex: 1, background: "#FF6B00", color: "#fff", border: "none", padding: "14px", borderRadius: 12, fontWeight: 700, fontSize: 15 }}
             >
               🛒 Ajouter au panier
             </button>
@@ -572,7 +572,7 @@ function ShopPage({ products, onAdd, onSelect, favorites, onToggleFav, isFavorit
                   <button onClick={e => { e.stopPropagation(); onToggleFav(p); }} style={{ background: isFavorite(p.id) ? "#fce8f0" : "#f4f4f4", color: isFavorite(p.id) ? "#e53e3e" : "#aaa", border: "none", padding: "7px 10px", borderRadius: 8, fontSize: 14 }}>
                     {isFavorite(p.id) ? "❤️" : "🤍"}
                   </button>
-                  <button onClick={e => { e.stopPropagation(); onAdd(p); }} style={{ background: "#1a1a1a", color: "#fff", border: "none", padding: "7px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600 }}>
+                  <button onClick={e => { e.stopPropagation(); onAdd(p); }} style={{ background: "#FF6B00", color: "#fff", border: "none", padding: "7px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600 }}>
                     + Ajouter
                   </button>
                 </div>
@@ -611,7 +611,7 @@ function CartPage({ cart, onRemove, onUpdateQty, goToShop, goToPayment, promoCod
     <div style={{ maxWidth: 600, margin: "0 auto", padding: "80px 20px", textAlign: "center", color: "#bbb" }}>
       <div style={{ fontSize: 52, marginBottom: 16 }}>🛒</div>
       <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 20 }}>Votre panier est vide</div>
-      <button onClick={goToShop} style={{ background: "#1a1a1a", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 10, fontWeight: 600 }}>
+      <button onClick={goToShop} style={{ background: "#FF6B00", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 10, fontWeight: 600 }}>
         Découvrir les produits
       </button>
     </div>
@@ -644,7 +644,7 @@ function CartPage({ cart, onRemove, onUpdateQty, goToShop, goToPayment, promoCod
           <div style={{ fontSize: 13, color: "#888" }}>Total à payer</div>
           <div style={{ fontWeight: 800, fontSize: 24 }}>{fmt(finalTotal)}</div>
         </div>
-        <button onClick={goToPayment} style={{ background: "#1a1a1a", color: "#fff", border: "none", padding: "14px 34px", borderRadius: 12, fontWeight: 700, fontSize: 15 }}>
+        <button onClick={goToPayment} style={{ background: "#FF6B00", color: "#fff", border: "none", padding: "14px 34px", borderRadius: 12, fontWeight: 700, fontSize: 15 }}>
           Commander →
         </button>
       </div>
@@ -679,7 +679,7 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       <div style={{
         width: 30, height: 30, borderRadius: "50%",
-        background: step > n ? "#0a7c45" : step === n ? "#1a1a1a" : "#e0e0e0",
+        background: step > n ? "#0a7c45" : step === n ? "#FF6B00" : "#e0e0e0",
         color: step >= n ? "#fff" : "#aaa",
         display: "flex", alignItems: "center", justifyContent: "center",
         fontWeight: 700, fontSize: 13,
@@ -721,7 +721,7 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
                 {errors[f.key] && <span style={{ fontSize: 11, color: "#e53e3e", marginTop: 3, display: "block" }}>{errors[f.key]}</span>}
               </div>
             ))}
-            <button onClick={() => { if (validate()) setStep(2); }} style={{ width: "100%", background: "#1a1a1a", color: "#fff", border: "none", padding: "14px", borderRadius: 12, fontWeight: 700, fontSize: 15 }}>
+            <button onClick={() => { if (validate()) setStep(2); }} style={{ width: "100%", background: "#FF6B00", color: "#fff", border: "none", padding: "14px", borderRadius: 12, fontWeight: 700, fontSize: 15 }}>
               Continuer →
             </button>
           </div>
@@ -734,7 +734,7 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
               <div key={m.key} onClick={() => setForm(p => ({ ...p, method: m.key }))} style={{
                 display: "flex", alignItems: "center", gap: 14, padding: "14px 16px",
                 borderRadius: 12, marginBottom: 10, cursor: "pointer",
-                border: `2px solid ${form.method === m.key ? "#1a1a1a" : "#e0e0e0"}`,
+                border: `2px solid ${form.method === m.key ? "#FF6B00" : "#e0e0e0"}`,
                 background: form.method === m.key ? "#f8f7f4" : "#fff",
               }}>
                 <span style={{ fontSize: 26 }}>{m.icon}</span>
@@ -742,8 +742,8 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
                   <div style={{ fontWeight: 600, fontSize: 14 }}>{m.label}</div>
                   <div style={{ fontSize: 12, color: "#888" }}>{m.sub}</div>
                 </div>
-                <div style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${form.method === m.key ? "#1a1a1a" : "#ccc"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  {form.method === m.key && <div style={{ width: 9, height: 9, background: "#1a1a1a", borderRadius: "50%" }} />}
+                <div style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${form.method === m.key ? "#FF6B00" : "#ccc"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {form.method === m.key && <div style={{ width: 9, height: 9, background: "#FF6B00", borderRadius: "50%" }} />}
                 </div>
               </div>
             ))}
@@ -768,7 +768,7 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
               </div>
             )}
 
-            <div style={{ background: "#f8f7f4", borderRadius: 10, padding: "14px 16px", margin: "16px 0" }}>
+            <div style={{ background: "#FFF8F3", borderRadius: 10, padding: "14px 16px", margin: "16px 0" }}>
               <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 10 }}>Récapitulatif</div>
               {cart.map(i => (
                 <div key={i.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4, color: "#555" }}>
@@ -781,7 +781,7 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
             </div>
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => setStep(1)} style={{ flex: 1, background: "#f4f4f4", color: "#555", border: "none", padding: "13px", borderRadius: 12, fontWeight: 600 }}>← Retour</button>
-              <button onClick={() => setStep(3)} style={{ flex: 2, background: "#1a1a1a", color: "#fff", border: "none", padding: "13px", borderRadius: 12, fontWeight: 700 }}>Payer {fmt(total)} →</button>
+              <button onClick={() => setStep(3)} style={{ flex: 2, background: "#FF6B00", color: "#fff", border: "none", padding: "13px", borderRadius: 12, fontWeight: 700 }}>Payer {fmt(total)} →</button>
             </div>
           </div>
         )}
@@ -955,8 +955,8 @@ function AdminPage({ products, setProducts, orders, setOrders }) {
         {[{ key: "overview", label: "Vue d'ensemble" }, { key: "products", label: "Produits" }, { key: "orders", label: "Commandes" }].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)} style={{
             padding: "10px 20px", border: "none", background: "transparent",
-            fontWeight: tab === t.key ? 700 : 400, color: tab === t.key ? "#1a1a1a" : "#888",
-            borderBottom: `2px solid ${tab === t.key ? "#1a1a1a" : "transparent"}`,
+            fontWeight: tab === t.key ? 700 : 400, color: tab === t.key ? "#FF6B00" : "#888",
+            borderBottom: `2px solid ${tab === t.key ? "#FF6B00" : "transparent"}`,
             fontSize: 14, marginBottom: -1,
           }}>{t.label}</button>
         ))}
@@ -1075,7 +1075,7 @@ function ProfilePage({ user, orders, favorites, onClose, onSelect }) {
       </button>
 
       {/* En-tête profil */}
-      <div style={{ background: "linear-gradient(135deg, #1a1a1a 0%, #333 100%)", borderRadius: 16, padding: "24px", marginBottom: 20, color: "#fff", display: "flex", alignItems: "center", gap: 16 }}>
+      <div style={{ background: "linear-gradient(135deg, #FF6B00 0%, #cc5500 100%)", borderRadius: 16, padding: "24px", marginBottom: 20, color: "#fff", display: "flex", alignItems: "center", gap: 16 }}>
         <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#fff2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28 }}>
           👤
         </div>
@@ -1107,8 +1107,8 @@ function ProfilePage({ user, orders, favorites, onClose, onSelect }) {
           <button key={t.key} onClick={() => setTab(t.key)} style={{
             padding: "10px 20px", border: "none", background: "transparent",
             fontWeight: tab === t.key ? 700 : 400,
-            color: tab === t.key ? "#1a1a1a" : "#888",
-            borderBottom: `2px solid ${tab === t.key ? "#1a1a1a" : "transparent"}`,
+            color: tab === t.key ? "#FF6B00" : "#888",
+            borderBottom: `2px solid ${tab === t.key ? "#FF6B00" : "transparent"}`,
             fontSize: 14, marginBottom: -1,
           }}>{t.label}</button>
         ))}
@@ -1144,7 +1144,7 @@ function ProfilePage({ user, orders, favorites, onClose, onSelect }) {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               {favorites.map(p => (
                 <div key={p.id} onClick={() => onSelect(p)} style={{ background: "#fff", borderRadius: 14, border: "1px solid #ebebeb", overflow: "hidden", cursor: "pointer" }}>
-                  <div style={{ height: 120, overflow: "hidden", background: "#f8f7f4" }}>
+                  <div style={{ height: 120, overflow: "hidden", background: "#FFF8F3" }}>
                     <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => e.target.style.display = "none"} />
                   </div>
                   <div style={{ padding: "10px 12px" }}>
@@ -1335,7 +1335,7 @@ Merci pour votre commande! 🙏`;
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
   if (checkingAuth) return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f8f7f4" }}>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#FFF8F3" }}>
       <div style={{ textAlign: "center", color: "#aaa" }}>
         <div style={{ fontSize: 48, marginBottom: 12 }}>🛍</div>
         <div>Chargement...</div>
