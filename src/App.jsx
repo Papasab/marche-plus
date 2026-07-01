@@ -89,6 +89,12 @@ const INITIAL_PRODUCTS = [
 const CATEGORIES = ["Tous", "Mode", "Électronique", "Maison", "Bureau"];
 
 // ✏️ CODES PROMO — modifiez ici
+// ══════════════════════════════════════════════════════
+// 🔐 PROTECTION ADMIN — NE PAS PARTAGER
+const ADMIN_EMAIL    = "kone91139@gmail.com";
+const ADMIN_PASSWORD = "Souare46";
+// ══════════════════════════════════════════════════════
+
 const PROMO_CODES = {
   "BIENVENUE": { discount: 10, label: "10% de réduction" },
   "ETE2025":   { discount: 15, label: "15% de réduction" },
@@ -1162,6 +1168,45 @@ function ProfilePage({ user, orders, favorites, onClose, onSelect }) {
 }
 
 // ─── App principale ───────────────────────────────────────────────
+
+// ─── Modal connexion Admin ────────────────────────────────────────
+function AdminLoginModal({ onSuccess, onClose }) {
+  const [pwd, setPwd] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = () => {
+    if (pwd === ADMIN_PASSWORD) { onSuccess(); }
+    else { setError("Mot de passe incorrect"); }
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ background: "#fff", borderRadius: 16, padding: "32px 28px", width: "100%", maxWidth: 380, boxShadow: "0 8px 40px rgba(0,0,0,0.2)" }}>
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
+          <div style={{ fontSize: 40, marginBottom: 8 }}>🔐</div>
+          <h3 style={{ fontWeight: 800, fontSize: 18 }}>Accès Admin</h3>
+          <p style={{ fontSize: 13, color: "#888", marginTop: 6 }}>Entrez le mot de passe administrateur</p>
+        </div>
+        <input
+          type="password"
+          placeholder="Mot de passe admin"
+          value={pwd}
+          onChange={e => setPwd(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && handleSubmit()}
+          style={{ width: "100%", padding: "11px 14px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 14, marginBottom: 12 }}
+        />
+        {error && <div style={{ background: "#fce8e8", color: "#c0392b", padding: "8px 12px", borderRadius: 8, fontSize: 13, marginBottom: 12 }}>✗ {error}</div>}
+        <button onClick={handleSubmit} style={{ width: "100%", background: "#FF6B00", color: "#fff", border: "none", padding: "13px", borderRadius: 12, fontWeight: 700, fontSize: 15, marginBottom: 10 }}>
+          Accéder au tableau de bord
+        </button>
+        <button onClick={onClose} style={{ width: "100%", background: "#f4f4f4", color: "#555", border: "none", padding: "11px", borderRadius: 12, fontWeight: 500, fontSize: 14 }}>
+          Annuler
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [page,     setPage]     = useState("shop");
   const [cart,     setCart]     = useState([]);
@@ -1179,6 +1224,8 @@ export default function App() {
   const [promoLabel, setPromoLabel] = useState("");
   const [points, setPoints] = useState(0);
   const [lang, setLang] = useState("fr");
+  const [adminUnlocked, setAdminUnlocked] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [myVendor, setMyVendor] = useState(null);
   const [vendorPage, setVendorPage] = useState(null); // null | "register" | "dashboard" | {slug: "..."}
 
@@ -1348,7 +1395,14 @@ Merci pour votre commande! 🙏`;
   return (
     <>
       <Toast toast={toast} />
-      <Navbar page={page} setPage={(p) => { setShowProfile(false); setSelectedProduct(null); setVendorPage(null); setPage(p); }} cartCount={cartCount} user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} onProfile={() => { setShowProfile(true); setSelectedProduct(null); setVendorPage(null); }} favCount={favorites.length} points={points} lang={lang} setLang={setLang} onVendor={() => setVendorPage(myVendor ? "dashboard" : "register")} hasVendor={!!myVendor} />
+      <Navbar page={page} setPage={(p) => {
+        setShowProfile(false); setSelectedProduct(null); setVendorPage(null);
+        if (p === "admin" && user?.email === ADMIN_EMAIL && !adminUnlocked) {
+          setShowAdminLogin(true);
+        } else {
+          setPage(p);
+        }
+      }} cartCount={cartCount} user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} onProfile={() => { setShowProfile(true); setSelectedProduct(null); setVendorPage(null); }} favCount={favorites.length} points={points} lang={lang} setLang={setLang} onVendor={() => setVendorPage(myVendor ? "dashboard" : "register")} hasVendor={!!myVendor} />
       {page === "shop"    && !selectedProduct && !showProfile && <ShopPage products={products} onAdd={addToCart} onSelect={setSelectedProduct} favorites={favorites} onToggleFav={toggleFavorite} isFavorite={isFavorite} />}
       {page === "shop"    && selectedProduct  && !showProfile && <ProductDetailPage product={selectedProduct} onAdd={(p) => { addToCart(p); }} onBack={() => setSelectedProduct(null)} isFavorite={isFavorite} onToggleFav={toggleFavorite} />}
       {showProfile && <ProfilePage user={user} orders={orders} favorites={favorites} onClose={() => setShowProfile(false)} onSelect={(p) => { setShowProfile(false); setPage("shop"); setSelectedProduct(p); }} />}
