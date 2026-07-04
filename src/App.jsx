@@ -194,9 +194,9 @@ function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount,
 
         {/* Desktop links */}
         <div className="nav-links" style={{ display: "flex", gap: 4 }}>
-          {[{ key: "shop", label: "Boutique" }, { key: "orders", label: "Commandes" }, { key: "admin", label: "Admin" }].map(({ key, label }) => (
+          {[{ key: "shop", label: "Boutique" }, { key: "orders", label: "Commandes" }, { key: "admin", label: "Admin", adminOnly: true }].filter(item => !item.adminOnly || user?.email === ADMIN_EMAIL).map(({ key, label }) => (
             <button key={key} onClick={() => setPage(key)} style={{
-              background: page === key ? "#1a1a1a" : "transparent",
+              background: page === key ? "#FF6B00" : "transparent",
               color: page === key ? "#fff" : "#666",
               border: "none", padding: "8px 14px", borderRadius: 9, fontWeight: 500, fontSize: 13,
             }}>{label}</button>
@@ -244,7 +244,7 @@ function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount,
           display: "flex", flexDirection: "column", gap: 6,
           boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
         }}>
-          {[{ key: "shop", label: "🏪 Boutique" }, { key: "orders", label: "📦 Commandes" }, { key: "admin", label: "⚙️ Admin" }].map(({ key, label }) => (
+          {[{ key: "shop", label: "🏪 Boutique" }, { key: "orders", label: "📦 Commandes" }, { key: "tracking", label: "📍 Suivi commande" }, { key: "admin", label: "⚙️ Admin", adminOnly: true }].filter(item => !item.adminOnly || user?.email === ADMIN_EMAIL).map(({ key, label }) => (
             <button key={key} onClick={() => { setPage(key); setMenuOpen(false); }} style={{
               background: page === key ? "#1a1a1a" : "#f4f4f4",
               color: page === key ? "#fff" : "#333",
@@ -368,7 +368,7 @@ function AuthPage({ onAuth }) {
 }
 
 // ─── Page Détail Produit ─────────────────────────────────────────
-function ProductDetailPage({ product, onAdd, onBack, isFavorite, onToggleFav }) {
+function ProductDetailPage({ product, onAdd, onBack, isFavorite, onToggleFav, user, orders }) {
   const [activeImg, setActiveImg] = useState(0);
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || null);
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || null);
@@ -531,6 +531,246 @@ function ProductDetailPage({ product, onAdd, onBack, isFavorite, onToggleFav }) 
 }
 
 // ─── Page Boutique ────────────────────────────────────────────────
+
+// ─── Page Suivi de Commande ───────────────────────────────────────
+function OrderTrackingPage({ supabase, orderId, onBack }) {
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [trackId, setTrackId] = useState(orderId || "");
+  const [searched, setSearched] = useState(!!orderId);
+
+  const searchOrder = async () => {
+    if (!trackId.trim()) return;
+    setLoading(true);
+    const { data } = await supabase.from("commandes").select("*").eq("id", trackId.trim()).single();
+    setOrder(data || null);
+    setSearched(true);
+    setLoading(false);
+  };
+
+  useEffect(() => { if (orderId) searchOrder(); }, []);
+
+  const steps = [
+    { label: "Commande reçue",   status: ["En cours","En transit","Livré"], icon: "✅" },
+    { label: "En préparation",   status: ["En cours","En transit","Livré"], icon: "📦" },
+    { label: "En livraison",     status: ["En transit","Livré"],            icon: "🚚" },
+    { label: "Livré",            status: ["Livré"],                          icon: "🎉" },
+  ];
+
+  const currentStep = order?.status === "Livré" ? 3 : order?.status === "En transit" ? 2 : order?.status === "En cours" ? 1 : 0;
+
+  return (
+    <div style={{ maxWidth: 600, margin: "0 auto", padding: "28px 20px" }}>
+      <button onClick={onBack} style={{ background: "none", border: "none", color: "#888", fontSize: 14, cursor: "pointer", marginBottom: 20 }}>← Retour</button>
+      <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 6 }}>📦 Suivi de commande</h2>
+      <p style={{ fontSize: 13, color: "#888", marginBottom: 24 }}>Entrez votre numéro de commande pour suivre votre livraison</p>
+
+      <div style={{ display: "flex", gap: 10, marginBottom: 28 }}>
+        <input
+          placeholder="Ex: CMD-123456"
+          value={trackId}
+          onChange={e => setTrackId(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && searchOrder()}
+          style={{ flex: 1, padding: "11px 16px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 14 }}
+        />
+        <button onClick={searchOrder} style={{ background: "#FF6B00", color: "#fff", border: "none", padding: "11px 22px", borderRadius: 10, fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
+          Rechercher
+        </button>
+      </div>
+
+      {searched && !loading && !order && (
+        <div style={{ textAlign: "center", padding: "40px 0", color: "#bbb" }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
+          <div style={{ fontWeight: 500 }}>Commande introuvable</div>
+          <div style={{ fontSize: 13, marginTop: 6 }}>Vérifiez votre numéro de commande</div>
+        </div>
+      )}
+
+      {order && (
+        <div>
+          {/* Infos commande */}
+          <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #ebebeb", padding: "20px 22px", marginBottom: 20 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 16 }}>{order.id}</div>
+                <div style={{ fontSize: 13, color: "#555", marginTop: 4 }}>👤 {order.client_nom}</div>
+                <div style={{ fontSize: 12, color: "#888", marginTop: 2 }}>📍 {order.client_adresse}</div>
+                <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>📅 {order.date}</div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontWeight: 800, fontSize: 20, color: "#FF6B00" }}>{fmt(order.total)}</div>
+                <div style={{ fontSize: 12, color: "#888", marginTop: 4 }}>💳 {order.paiement}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Barre de progression */}
+          <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #ebebeb", padding: "24px 22px", marginBottom: 20 }}>
+            <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 24 }}>Statut de votre commande</h3>
+            <div style={{ position: "relative" }}>
+              {/* Ligne de progression */}
+              <div style={{ position: "absolute", top: 20, left: "10%", right: "10%", height: 3, background: "#f0f0f0", borderRadius: 99, zIndex: 0 }}>
+                <div style={{ width: `${(currentStep / 3) * 100}%`, height: "100%", background: "#FF6B00", borderRadius: 99, transition: "width 0.5s" }} />
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", position: "relative", zIndex: 1 }}>
+                {steps.map((step, i) => {
+                  const done = i <= currentStep;
+                  return (
+                    <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}>
+                      <div style={{
+                        width: 42, height: 42, borderRadius: "50%",
+                        background: done ? "#FF6B00" : "#f0f0f0",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 18, marginBottom: 8, transition: "background 0.3s",
+                        boxShadow: done ? "0 4px 12px rgba(255,107,0,0.3)" : "none",
+                      }}>
+                        {done ? step.icon : "○"}
+                      </div>
+                      <div style={{ fontSize: 11, fontWeight: done ? 700 : 400, color: done ? "#FF6B00" : "#aaa", textAlign: "center", lineHeight: 1.3 }}>{step.label}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {order.status === "Annulé" && (
+              <div style={{ marginTop: 20, background: "#fce8e8", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "#c0392b", fontWeight: 500 }}>
+                ✗ Cette commande a été annulée.
+              </div>
+            )}
+          </div>
+
+          {/* Partager */}
+          <button onClick={() => navigator.clipboard.writeText(`https://marche-plus.vercel.app/?suivi=${order.id}`)} style={{ width: "100%", background: "#f4f4f4", color: "#555", border: "none", padding: "12px", borderRadius: 12, fontWeight: 500, fontSize: 14, cursor: "pointer" }}>
+            🔗 Copier le lien de suivi
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Avis Clients ─────────────────────────────────────────────────
+function ReviewSection({ supabase, product, user, orders }) {
+  const [avis, setAvis] = useState([]);
+  const [myNote, setMyNote] = useState(5);
+  const [myComment, setMyComment] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  // Vérifier si le client a commandé ce produit
+  const hasOrdered = orders.some(o => {
+    try {
+      const items = JSON.parse(o.produits || "[]");
+      return items.some(i => i.nom === product.name);
+    } catch { return false; }
+  });
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from("avis").select("*").eq("produit_id", product.id).order("created_at", { ascending: false });
+      setAvis(data || []);
+      setLoading(false);
+    })();
+  }, [product.id]);
+
+  const submitAvis = async () => {
+    if (!myComment.trim()) return;
+    setSubmitting(true);
+    await supabase.from("avis").insert({
+      produit_id: product.id,
+      user_id: user?.id,
+      client_nom: user?.email?.split("@")[0] || "Client",
+      note: myNote,
+      commentaire: myComment,
+    });
+    setAvis(prev => [{ client_nom: user?.email?.split("@")[0], note: myNote, commentaire: myComment, created_at: new Date().toISOString() }, ...prev]);
+    setMyComment("");
+    setSubmitted(true);
+    setSubmitting(false);
+  };
+
+  const avgNote = avis.length > 0 ? (avis.reduce((s, a) => s + a.note, 0) / avis.length).toFixed(1) : null;
+
+  return (
+    <div style={{ marginTop: 40 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
+        <h2 style={{ fontWeight: 700, fontSize: 18 }}>⭐ Avis clients</h2>
+        {avgNote && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#fff8e1", borderRadius: 99, padding: "4px 12px" }}>
+            <span style={{ color: "#f5a623", fontSize: 16 }}>★</span>
+            <span style={{ fontWeight: 800, fontSize: 16 }}>{avgNote}</span>
+            <span style={{ fontSize: 12, color: "#888" }}>({avis.length} avis)</span>
+          </div>
+        )}
+      </div>
+
+      {/* Formulaire avis */}
+      {user && hasOrdered && !submitted && (
+        <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #ebebeb", padding: "20px", marginBottom: 20 }}>
+          <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12 }}>✍️ Donnez votre avis (achat vérifié)</div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+            {[1,2,3,4,5].map(n => (
+              <button key={n} onClick={() => setMyNote(n)} style={{ background: "none", border: "none", fontSize: 28, cursor: "pointer", opacity: n <= myNote ? 1 : 0.3 }}>★</button>
+            ))}
+          </div>
+          <textarea
+            placeholder="Partagez votre expérience avec ce produit..."
+            value={myComment}
+            onChange={e => setMyComment(e.target.value)}
+            rows={3}
+            style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 14, fontFamily: "inherit", resize: "vertical", marginBottom: 12 }}
+          />
+          <button onClick={submitAvis} disabled={submitting} style={{ background: "#FF6B00", color: "#fff", border: "none", padding: "10px 22px", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer" }}>
+            {submitting ? "Envoi..." : "Publier mon avis"}
+          </button>
+        </div>
+      )}
+
+      {submitted && (
+        <div style={{ background: "#e6f7ef", borderRadius: 12, padding: "14px 18px", marginBottom: 20, fontSize: 13, color: "#0a7c45", fontWeight: 500 }}>
+          ✓ Merci pour votre avis ! Il a été publié.
+        </div>
+      )}
+
+      {user && !hasOrdered && (
+        <div style={{ background: "#f8f7f4", borderRadius: 12, padding: "14px 18px", marginBottom: 20, fontSize: 13, color: "#888" }}>
+          💡 Achetez ce produit pour laisser un avis vérifié.
+        </div>
+      )}
+
+      {/* Liste avis */}
+      {loading ? <p style={{ color: "#aaa" }}>Chargement...</p> : avis.length === 0 ? (
+        <p style={{ color: "#aaa", fontSize: 13 }}>Aucun avis pour le moment. Soyez le premier !</p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {avis.map((a, i) => (
+            <div key={i} style={{ background: "#fff", borderRadius: 12, border: "1px solid #ebebeb", padding: "16px 20px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#FF6B00", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14 }}>
+                    {a.client_nom?.[0]?.toUpperCase()}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>{a.client_nom}</div>
+                    <div style={{ fontSize: 11, color: "#aaa" }}>{new Date(a.created_at).toLocaleDateString("fr-FR")}</div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 2 }}>
+                  {[1,2,3,4,5].map(n => <span key={n} style={{ fontSize: 14, color: n <= a.note ? "#f5a623" : "#ddd" }}>★</span>)}
+                </div>
+              </div>
+              <p style={{ fontSize: 14, color: "#555", lineHeight: 1.6 }}>{a.commentaire}</p>
+              <div style={{ marginTop: 6, fontSize: 11, color: "#0a7c45", fontWeight: 500 }}>✓ Achat vérifié</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ShopPage({ products, onAdd, onSelect, favorites, onToggleFav, isFavorite }) {
   const [category, setCategory] = useState("Tous");
   const [search, setSearch] = useState("");
@@ -1227,7 +1467,8 @@ export default function App() {
   const [adminUnlocked, setAdminUnlocked] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [myVendor, setMyVendor] = useState(null);
-  const [vendorPage, setVendorPage] = useState(null); // null | "register" | "dashboard" | {slug: "..."}
+  const [vendorPage, setVendorPage] = useState(null);
+  const [trackingPage, setTrackingPage] = useState(null); // null | orderId
 
   // Charger les produits depuis Supabase
   const fetchProducts = async () => {
@@ -1253,11 +1494,13 @@ export default function App() {
     });
   }, [user]);
 
-  // Détecter ?boutique=slug dans l'URL pour ouvrir une boutique vendeur directement
+  // Détecter ?boutique=slug ou ?suivi=CMD dans l'URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const boutiqueSlug = params.get("boutique");
+    const suiviId = params.get("suivi");
     if (boutiqueSlug) setVendorPage({ slug: boutiqueSlug });
+    if (suiviId) { setTrackingPage(suiviId); setPage("tracking"); }
   }, []);
 
   useEffect(() => {
