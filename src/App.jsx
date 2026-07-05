@@ -92,6 +92,8 @@ const CATEGORIES = ["Tous", "Mode", "Électronique", "Maison", "Bureau"];
 // ══════════════════════════════════════════════════════
 // 🔐 PROTECTION ADMIN — NE PAS PARTAGER
 const ADMIN_EMAIL    = "kone91139@gmail.com";
+const PARRAIN_REDUCTION  = 1000; // FCFA gagné par le parrain
+const FILLEUL_REDUCTION  = 500;  // FCFA offert au nouvel ami
 const ADMIN_PASSWORD = "Souare46";
 // ══════════════════════════════════════════════════════
 
@@ -771,6 +773,146 @@ function ReviewSection({ supabase, product, user, orders }) {
   );
 }
 
+
+// ─── Page Parrainage ──────────────────────────────────────────────
+function ParrainagePage({ user, supabase, myParrainage, setMyParrainage, onBack }) {
+  const [loading, setLoading] = useState(false);
+  const [filleuls, setFilleuls] = useState([]);
+  const [copied, setCopied] = useState(false);
+
+  const createCode = async () => {
+    setLoading(true);
+    const code = "REF-" + user.email.split("@")[0].toUpperCase() + "-" + Math.random().toString(36).slice(2,6).toUpperCase();
+    const { data } = await supabase.from("parrainages").insert({
+      parrain_id: user.id,
+      parrain_email: user.email,
+      code,
+    }).select().single();
+    setMyParrainage(data);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (!myParrainage) return;
+    supabase.from("filleuls").select("*").eq("parrain_code", myParrainage.code).then(({ data }) => {
+      setFilleuls(data || []);
+    });
+  }, [myParrainage]);
+
+  const shareLink = myParrainage ? `https://marche-plus.vercel.app/?ref=${myParrainage.code}` : "";
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(shareLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const shareWhatsApp = () => {
+    const msg = `🛍 Découvrez *Marché+* la meilleure boutique en ligne !
+
+Utilisez mon code et obtenez *500 FCFA de réduction* sur votre première commande :
+
+👉 ${shareLink}
+
+Code : *${myParrainage?.code}*`;
+    window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
+  };
+
+  return (
+    <div style={{ maxWidth: 600, margin: "0 auto", padding: "28px 20px" }}>
+      <button onClick={onBack} style={{ background: "none", border: "none", color: "#888", fontSize: 14, cursor: "pointer", marginBottom: 20 }}>← Retour</button>
+
+      {/* Header */}
+      <div style={{ background: "linear-gradient(135deg, #FF6B00 0%, #cc5500 100%)", borderRadius: 16, padding: "28px 24px", marginBottom: 20, color: "#fff", textAlign: "center" }}>
+        <div style={{ fontSize: 48, marginBottom: 12 }}>🎁</div>
+        <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 8 }}>Programme de parrainage</h2>
+        <p style={{ fontSize: 14, opacity: 0.9, lineHeight: 1.6 }}>
+          Invitez vos amis et gagnez <strong>1 000 FCFA</strong> pour chaque ami qui commande.<br />
+          Votre ami reçoit <strong>500 FCFA</strong> de réduction sur sa première commande !
+        </p>
+      </div>
+
+      {/* Comment ça marche */}
+      <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #ebebeb", padding: "20px 22px", marginBottom: 20 }}>
+        <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 16 }}>Comment ça marche ?</h3>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {[
+            { step: "1", icon: "🔗", title: "Partagez votre lien", desc: "Envoyez votre lien unique à vos amis par WhatsApp" },
+            { step: "2", icon: "👤", title: "Votre ami s'inscrit", desc: "Il crée un compte et utilise votre code" },
+            { step: "3", icon: "🛍", title: "Il passe une commande", desc: "Il reçoit 500 FCFA de réduction automatiquement" },
+            { step: "4", icon: "💰", title: "Vous gagnez 1 000 FCFA", desc: "Crédité sur votre prochain achat !" },
+          ].map(s => (
+            <div key={s.step} style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#FFF3E8", color: "#FF6B00", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 14, flexShrink: 0 }}>{s.step}</div>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>{s.icon} {s.title}</div>
+                <div style={{ fontSize: 13, color: "#888", marginTop: 2 }}>{s.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Mon code */}
+      {!myParrainage ? (
+        <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #ebebeb", padding: "20px 22px", textAlign: "center" }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>🚀</div>
+          <p style={{ fontSize: 14, color: "#888", marginBottom: 16 }}>Créez votre code de parrainage pour commencer à gagner !</p>
+          <button onClick={createCode} disabled={loading} style={{ background: "#FF6B00", color: "#fff", border: "none", padding: "13px 28px", borderRadius: 12, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+            {loading ? "Création..." : "🎁 Créer mon code"}
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* Stats */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
+            {[
+              { label: "Amis parrainés", value: filleuls.length, icon: "👥" },
+              { label: "Gains totaux", value: `${(myParrainage.gains_total || 0).toLocaleString()} FCFA`, icon: "💰" },
+              { label: "Mon code", value: myParrainage.code, icon: "🎯" },
+            ].map(s => (
+              <div key={s.label} style={{ background: "#fff", borderRadius: 12, border: "1px solid #ebebeb", padding: "14px 12px", textAlign: "center" }}>
+                <div style={{ fontSize: 22, marginBottom: 6 }}>{s.icon}</div>
+                <div style={{ fontWeight: 800, fontSize: 13, color: "#FF6B00" }}>{s.value}</div>
+                <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Lien de parrainage */}
+          <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #ebebeb", padding: "20px 22px", marginBottom: 16 }}>
+            <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 10 }}>🔗 Votre lien de parrainage</div>
+            <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+              <div style={{ flex: 1, padding: "10px 14px", background: "#f8f7f4", borderRadius: 10, fontSize: 12, color: "#555", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {shareLink}
+              </div>
+              <button onClick={copyLink} style={{ background: copied ? "#0a7c45" : "#1a1a1a", color: "#fff", border: "none", padding: "10px 16px", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer", flexShrink: 0 }}>
+                {copied ? "✓ Copié !" : "Copier"}
+              </button>
+            </div>
+            <button onClick={shareWhatsApp} style={{ width: "100%", background: "#25D366", color: "#fff", border: "none", padding: "13px", borderRadius: 12, fontWeight: 700, fontSize: 15, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              💬 Partager sur WhatsApp
+            </button>
+          </div>
+
+          {/* Liste filleuls */}
+          {filleuls.length > 0 && (
+            <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #ebebeb", padding: "20px 22px" }}>
+              <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14 }}>👥 Mes amis parrainés ({filleuls.length})</h3>
+              {filleuls.map((f, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: i < filleuls.length - 1 ? "1px solid #f0f0f0" : "none" }}>
+                  <div style={{ fontWeight: 500, fontSize: 14 }}>👤 {f.filleul_email}</div>
+                  <span style={{ background: "#e6f7ef", color: "#0a7c45", fontSize: 12, fontWeight: 600, padding: "3px 10px", borderRadius: 99 }}>+1 000 FCFA</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function ShopPage({ products, onAdd, onSelect, favorites, onToggleFav, isFavorite }) {
   const [category, setCategory] = useState("Tous");
   const [search, setSearch] = useState("");
@@ -1310,7 +1452,7 @@ function AdminPage({ products, setProducts, orders, setOrders }) {
 
 
 // ─── Page Profil ──────────────────────────────────────────────────
-function ProfilePage({ user, orders, favorites, onClose, onSelect }) {
+function ProfilePage({ user, orders, favorites, onClose, onSelect, setShowParrainage }) {
   const [tab, setTab] = useState("info");
   const totalSpent = orders.reduce((s, o) => s + o.total, 0);
 
@@ -1460,6 +1602,8 @@ export default function App() {
   const [favorites, setFavorites] = useState([]);
   const [showProfile, setShowProfile] = useState(false);
   const [promoCode, setPromoCode] = useState("");
+  const [parrainCode, setParrainCode] = useState("");
+  const [myParrainage, setMyParrainage] = useState(null);
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [promoLabel, setPromoLabel] = useState("");
   const [points, setPoints] = useState(0);
@@ -1468,7 +1612,8 @@ export default function App() {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [myVendor, setMyVendor] = useState(null);
   const [vendorPage, setVendorPage] = useState(null);
-  const [trackingPage, setTrackingPage] = useState(null); // null | orderId
+  const [trackingPage, setTrackingPage] = useState(null);
+  const [showParrainage, setShowParrainage] = useState(false);
 
   // Charger les produits depuis Supabase
   const fetchProducts = async () => {
@@ -1487,6 +1632,31 @@ export default function App() {
 
   useEffect(() => { fetchProducts(); }, []);
 
+  // Charger le code de parrainage de l'utilisateur
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("parrainages").select("*").eq("parrain_id", user.id).single().then(({ data }) => {
+      if (data) setMyParrainage(data);
+    });
+    // Détecter code parrain dans URL
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) setParrainCode(ref);
+  }, [user]);
+
+  // Créer code parrainage si n'existe pas
+  const createParrainage = async () => {
+    if (myParrainage) return myParrainage;
+    const code = "REF-" + user.email.split("@")[0].toUpperCase() + "-" + Math.random().toString(36).slice(2,6).toUpperCase();
+    const { data } = await supabase.from("parrainages").insert({
+      parrain_id: user.id,
+      parrain_email: user.email,
+      code,
+    }).select().single();
+    setMyParrainage(data);
+    return data;
+  };
+
   useEffect(() => {
     if (!user) return;
     supabase.from("vendeurs").select("*").eq("user_id", user.id).maybeSingle().then(({ data }) => {
@@ -1499,8 +1669,10 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const boutiqueSlug = params.get("boutique");
     const suiviId = params.get("suivi");
+    const refCode = params.get("ref");
     if (boutiqueSlug) setVendorPage({ slug: boutiqueSlug });
     if (suiviId) { setTrackingPage(suiviId); setPage("tracking"); }
+    if (refCode) setParrainCode(refCode);
   }, []);
 
   useEffect(() => {
@@ -1648,7 +1820,7 @@ Merci pour votre commande! 🙏`;
       }} cartCount={cartCount} user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} onProfile={() => { setShowProfile(true); setSelectedProduct(null); setVendorPage(null); }} favCount={favorites.length} points={points} lang={lang} setLang={setLang} onVendor={() => setVendorPage(myVendor ? "dashboard" : "register")} hasVendor={!!myVendor} />
       {page === "shop"    && !selectedProduct && !showProfile && <ShopPage products={products} onAdd={addToCart} onSelect={setSelectedProduct} favorites={favorites} onToggleFav={toggleFavorite} isFavorite={isFavorite} />}
       {page === "shop"    && selectedProduct  && !showProfile && <ProductDetailPage product={selectedProduct} onAdd={(p) => { addToCart(p); }} onBack={() => setSelectedProduct(null)} isFavorite={isFavorite} onToggleFav={toggleFavorite} />}
-      {showProfile && <ProfilePage user={user} orders={orders} favorites={favorites} onClose={() => setShowProfile(false)} onSelect={(p) => { setShowProfile(false); setPage("shop"); setSelectedProduct(p); }} />}
+      {showProfile && !showParrainage && <ProfilePage user={user} orders={orders} favorites={favorites} onClose={() => setShowProfile(false)} onSelect={(p) => { setShowProfile(false); setPage("shop"); setSelectedProduct(p); }} setShowParrainage={setShowParrainage} />}
       {vendorPage === "register" && <VendorRegister supabase={supabase} user={user} onDone={(v) => { setMyVendor(v); setVendorPage("dashboard"); }} onBack={() => setVendorPage(null)} />}
       {vendorPage === "dashboard" && myVendor && <VendorDashboard supabase={supabase} vendor={myVendor} onBack={() => setVendorPage(null)} />}
       {vendorPage && typeof vendorPage === "object" && vendorPage.slug && <VendorShopPage supabase={supabase} slug={vendorPage.slug} onAdd={addToCart} onBack={() => { setVendorPage(null); window.history.replaceState({}, "", "/"); }} />}
