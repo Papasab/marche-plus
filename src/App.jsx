@@ -112,7 +112,7 @@ const genId = () => "CMD-" + Date.now().toString().slice(-6);
 
 const statusStyle = (s) => ({
   "Livré":      { bg: "#e6f7ef", color: "#0a7c45" },
-  "En transit": { bg: "#fff8e1", color: "#b76e00" },
+  "En transit": { bg: "#F5F0FF", color: "#b76e00" },
   "En cours":   { bg: "#e8f0fe", color: "#1a56db" },
   "Annulé":     { bg: "#fce8e8", color: "#c0392b" },
 }[s] || { bg: "#f3f4f6", color: "#6b7280" });
@@ -124,14 +124,14 @@ function ProductImage({ src, alt, height = 120 }) {
 
   if (error || !src) {
     return (
-      <div style={{ background: "#FFF8F3", height, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48 }}>
+      <div style={{ background: "#FAF8FF", height, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48 }}>
         🛍
       </div>
     );
   }
   return (
     <div
-      style={{ height, overflow: "hidden", background: "#FFF8F3", cursor: "zoom-in" }}
+      style={{ height, overflow: "hidden", background: "#FAF8FF", cursor: "zoom-in" }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onTouchStart={() => setHovered(true)}
@@ -198,7 +198,7 @@ function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount,
         <div className="nav-links" style={{ display: "flex", gap: 4 }}>
           {[{ key: "shop", label: "Boutique" }, { key: "orders", label: "Commandes" }, { key: "admin", label: "Admin", adminOnly: true }].filter(item => !item.adminOnly || user?.email === ADMIN_EMAIL).map(({ key, label }) => (
             <button key={key} onClick={() => setPage(key)} style={{
-              background: page === key ? "#FF6B00" : "transparent",
+              background: page === key ? "#6B21A8" : "transparent",
               color: page === key ? "#fff" : "#666",
               border: "none", padding: "8px 14px", borderRadius: 9, fontWeight: 500, fontSize: 13,
             }}>{label}</button>
@@ -220,7 +220,7 @@ function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount,
           <button onClick={() => setLang(lang === "fr" ? "en" : "fr")} style={{ background: "#f4f4f4", color: "#555", border: "none", padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: 600 }}>
             {lang === "fr" ? "🇫🇷" : "🇬🇧"}
           </button>
-          {points > 0 && <span style={{ background: "#fff8e1", color: "#b76e00", fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 99 }}>⭐ {points} pts</span>}
+          {points > 0 && <span style={{ background: "#F5F0FF", color: "#b76e00", fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 99 }}>⭐ {points} pts</span>}
           <button onClick={onProfile} style={{ background: "none", border: "none", fontSize: 13, color: "#555", cursor: "pointer", fontWeight: 500 }}>
             👤 {user?.email?.split("@")[0]}
           </button>
@@ -294,7 +294,7 @@ function AuthPage({ onAuth }) {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#FFF8F3", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+    <div style={{ minHeight: "100vh", background: "#FAF8FF", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <div style={{ background: "#fff", borderRadius: 20, border: "1px solid #ebebeb", padding: "40px 36px", width: "100%", maxWidth: 420, boxShadow: "0 8px 40px rgba(0,0,0,0.08)" }}>
         <div style={{ textAlign: "center", marginBottom: 28 }}>
           <div style={{ fontSize: 48, marginBottom: 8 }}>🛍</div>
@@ -349,7 +349,7 @@ function AuthPage({ onAuth }) {
         )}
 
         <button onClick={handleSubmit} disabled={loading} style={{
-          width: "100%", background: "#FF6B00", color: "#fff", border: "none",
+          width: "100%", background: "#6B21A8", color: "#fff", border: "none",
           padding: "14px", borderRadius: 12, fontWeight: 700, fontSize: 15,
           opacity: loading ? 0.7 : 1,
         }}>
@@ -403,7 +403,7 @@ function ProductDetailPage({ product, onAdd, onBack, isFavorite, onToggleFav, us
         {/* Galerie photos */}
         <div>
           {/* Photo principale */}
-          <div style={{ borderRadius: 16, overflow: "hidden", background: "#FFF8F3", marginBottom: 12, height: 340 }}>
+          <div style={{ borderRadius: 16, overflow: "hidden", background: "#FAF8FF", marginBottom: 12, height: 340 }}>
             <img
               src={images[activeImg]} alt={product.name}
               style={{ width: "100%", height: "100%", objectFit: "cover", transition: "opacity 0.2s" }}
@@ -493,7 +493,7 @@ function ProductDetailPage({ product, onAdd, onBack, isFavorite, onToggleFav, us
             </div>
             <button
               onClick={() => { for(let i = 0; i < qty; i++) onAdd(product); }}
-              style={{ flex: 1, background: "#FF6B00", color: "#fff", border: "none", padding: "14px", borderRadius: 12, fontWeight: 700, fontSize: 15 }}
+              style={{ flex: 1, background: "#6B21A8", color: "#fff", border: "none", padding: "14px", borderRadius: 12, fontWeight: 700, fontSize: 15 }}
             >
               🛒 Ajouter au panier
             </button>
@@ -575,7 +575,7 @@ function OrderTrackingPage({ supabase, orderId, onBack }) {
           onKeyDown={e => e.key === "Enter" && searchOrder()}
           style={{ flex: 1, padding: "11px 16px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 14 }}
         />
-        <button onClick={searchOrder} style={{ background: "#FF6B00", color: "#fff", border: "none", padding: "11px 22px", borderRadius: 10, fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
+        <button onClick={searchOrder} style={{ background: "#6B21A8", color: "#fff", border: "none", padding: "11px 22px", borderRadius: 10, fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
           Rechercher
         </button>
       </div>
@@ -600,7 +600,7 @@ function OrderTrackingPage({ supabase, orderId, onBack }) {
                 <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>📅 {order.date}</div>
               </div>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontWeight: 800, fontSize: 20, color: "#FF6B00" }}>{fmt(order.total)}</div>
+                <div style={{ fontWeight: 800, fontSize: 20, color: "#6B21A8" }}>{fmt(order.total)}</div>
                 <div style={{ fontSize: 12, color: "#888", marginTop: 4 }}>💳 {order.paiement}</div>
               </div>
             </div>
@@ -612,7 +612,7 @@ function OrderTrackingPage({ supabase, orderId, onBack }) {
             <div style={{ position: "relative" }}>
               {/* Ligne de progression */}
               <div style={{ position: "absolute", top: 20, left: "10%", right: "10%", height: 3, background: "#f0f0f0", borderRadius: 99, zIndex: 0 }}>
-                <div style={{ width: `${(currentStep / 3) * 100}%`, height: "100%", background: "#FF6B00", borderRadius: 99, transition: "width 0.5s" }} />
+                <div style={{ width: `${(currentStep / 3) * 100}%`, height: "100%", background: "#6B21A8", borderRadius: 99, transition: "width 0.5s" }} />
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", position: "relative", zIndex: 1 }}>
                 {steps.map((step, i) => {
@@ -621,14 +621,14 @@ function OrderTrackingPage({ supabase, orderId, onBack }) {
                     <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}>
                       <div style={{
                         width: 42, height: 42, borderRadius: "50%",
-                        background: done ? "#FF6B00" : "#f0f0f0",
+                        background: done ? "#6B21A8" : "#f0f0f0",
                         display: "flex", alignItems: "center", justifyContent: "center",
                         fontSize: 18, marginBottom: 8, transition: "background 0.3s",
                         boxShadow: done ? "0 4px 12px rgba(255,107,0,0.3)" : "none",
                       }}>
                         {done ? step.icon : "○"}
                       </div>
-                      <div style={{ fontSize: 11, fontWeight: done ? 700 : 400, color: done ? "#FF6B00" : "#aaa", textAlign: "center", lineHeight: 1.3 }}>{step.label}</div>
+                      <div style={{ fontSize: 11, fontWeight: done ? 700 : 400, color: done ? "#6B21A8" : "#aaa", textAlign: "center", lineHeight: 1.3 }}>{step.label}</div>
                     </div>
                   );
                 })}
@@ -700,7 +700,7 @@ function ReviewSection({ supabase, product, user, orders }) {
       <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
         <h2 style={{ fontWeight: 700, fontSize: 18 }}>⭐ Avis clients</h2>
         {avgNote && (
-          <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#fff8e1", borderRadius: 99, padding: "4px 12px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#F5F0FF", borderRadius: 99, padding: "4px 12px" }}>
             <span style={{ color: "#f5a623", fontSize: 16 }}>★</span>
             <span style={{ fontWeight: 800, fontSize: 16 }}>{avgNote}</span>
             <span style={{ fontSize: 12, color: "#888" }}>({avis.length} avis)</span>
@@ -724,7 +724,7 @@ function ReviewSection({ supabase, product, user, orders }) {
             rows={3}
             style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 14, fontFamily: "inherit", resize: "vertical", marginBottom: 12 }}
           />
-          <button onClick={submitAvis} disabled={submitting} style={{ background: "#FF6B00", color: "#fff", border: "none", padding: "10px 22px", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer" }}>
+          <button onClick={submitAvis} disabled={submitting} style={{ background: "#6B21A8", color: "#fff", border: "none", padding: "10px 22px", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer" }}>
             {submitting ? "Envoi..." : "Publier mon avis"}
           </button>
         </div>
@@ -737,7 +737,7 @@ function ReviewSection({ supabase, product, user, orders }) {
       )}
 
       {user && !hasOrdered && (
-        <div style={{ background: "#f8f7f4", borderRadius: 12, padding: "14px 18px", marginBottom: 20, fontSize: 13, color: "#888" }}>
+        <div style={{ background: "#FAF8FF", borderRadius: 12, padding: "14px 18px", marginBottom: 20, fontSize: 13, color: "#888" }}>
           💡 Achetez ce produit pour laisser un avis vérifié.
         </div>
       )}
@@ -751,7 +751,7 @@ function ReviewSection({ supabase, product, user, orders }) {
             <div key={i} style={{ background: "#fff", borderRadius: 12, border: "1px solid #ebebeb", padding: "16px 20px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#FF6B00", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#6B21A8", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 14 }}>
                     {a.client_nom?.[0]?.toUpperCase()}
                   </div>
                   <div>
@@ -823,7 +823,7 @@ Code : *${myParrainage?.code}*`;
       <button onClick={onBack} style={{ background: "none", border: "none", color: "#888", fontSize: 14, cursor: "pointer", marginBottom: 20 }}>← Retour</button>
 
       {/* Header */}
-      <div style={{ background: "linear-gradient(135deg, #FF6B00 0%, #cc5500 100%)", borderRadius: 16, padding: "28px 24px", marginBottom: 20, color: "#fff", textAlign: "center" }}>
+      <div style={{ background: "linear-gradient(135deg, #4C1D95 0%, #6B21A8 50%, #D4AF37 100%)", borderRadius: 16, padding: "28px 24px", marginBottom: 20, color: "#fff", textAlign: "center" }}>
         <div style={{ fontSize: 48, marginBottom: 12 }}>🎁</div>
         <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 8 }}>Programme de parrainage</h2>
         <p style={{ fontSize: 14, opacity: 0.9, lineHeight: 1.6 }}>
@@ -843,7 +843,7 @@ Code : *${myParrainage?.code}*`;
             { step: "4", icon: "💰", title: "Vous gagnez 1 000 FCFA", desc: "Crédité sur votre prochain achat !" },
           ].map(s => (
             <div key={s.step} style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
-              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#FFF3E8", color: "#FF6B00", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 14, flexShrink: 0 }}>{s.step}</div>
+              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#F3E8FF", color: "#6B21A8", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 14, flexShrink: 0 }}>{s.step}</div>
               <div>
                 <div style={{ fontWeight: 600, fontSize: 14 }}>{s.icon} {s.title}</div>
                 <div style={{ fontSize: 13, color: "#888", marginTop: 2 }}>{s.desc}</div>
@@ -858,7 +858,7 @@ Code : *${myParrainage?.code}*`;
         <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #ebebeb", padding: "20px 22px", textAlign: "center" }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>🚀</div>
           <p style={{ fontSize: 14, color: "#888", marginBottom: 16 }}>Créez votre code de parrainage pour commencer à gagner !</p>
-          <button onClick={createCode} disabled={loading} style={{ background: "#FF6B00", color: "#fff", border: "none", padding: "13px 28px", borderRadius: 12, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+          <button onClick={createCode} disabled={loading} style={{ background: "#6B21A8", color: "#fff", border: "none", padding: "13px 28px", borderRadius: 12, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
             {loading ? "Création..." : "🎁 Créer mon code"}
           </button>
         </div>
@@ -873,7 +873,7 @@ Code : *${myParrainage?.code}*`;
             ].map(s => (
               <div key={s.label} style={{ background: "#fff", borderRadius: 12, border: "1px solid #ebebeb", padding: "14px 12px", textAlign: "center" }}>
                 <div style={{ fontSize: 22, marginBottom: 6 }}>{s.icon}</div>
-                <div style={{ fontWeight: 800, fontSize: 13, color: "#FF6B00" }}>{s.value}</div>
+                <div style={{ fontWeight: 800, fontSize: 13, color: "#6B21A8" }}>{s.value}</div>
                 <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>{s.label}</div>
               </div>
             ))}
@@ -883,7 +883,7 @@ Code : *${myParrainage?.code}*`;
           <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #ebebeb", padding: "20px 22px", marginBottom: 16 }}>
             <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 10 }}>🔗 Votre lien de parrainage</div>
             <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-              <div style={{ flex: 1, padding: "10px 14px", background: "#f8f7f4", borderRadius: 10, fontSize: 12, color: "#555", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <div style={{ flex: 1, padding: "10px 14px", background: "#FAF8FF", borderRadius: 10, fontSize: 12, color: "#555", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {shareLink}
               </div>
               <button onClick={copyLink} style={{ background: copied ? "#0a7c45" : "#1a1a1a", color: "#fff", border: "none", padding: "10px 16px", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer", flexShrink: 0 }}>
@@ -955,12 +955,12 @@ function ShopPage({ products, onAdd, onSelect, favorites, onToggleFav, isFavorit
                 <span style={{ fontSize: 11, color: "#bbb" }}>{p.rating} ({p.reviews})</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontWeight: 800, fontSize: 15 }}>{fmt(p.price)}</span>
+                <span style={{ fontWeight: 800, fontSize: 15, color: "#D4AF37" }}>{fmt(p.price)}</span>
                 <div style={{ display: "flex", gap: 6 }}>
                   <button onClick={e => { e.stopPropagation(); onToggleFav(p); }} style={{ background: isFavorite(p.id) ? "#fce8f0" : "#f4f4f4", color: isFavorite(p.id) ? "#e53e3e" : "#aaa", border: "none", padding: "7px 10px", borderRadius: 8, fontSize: 14 }}>
                     {isFavorite(p.id) ? "❤️" : "🤍"}
                   </button>
-                  <button onClick={e => { e.stopPropagation(); onAdd(p); }} style={{ background: "#FF6B00", color: "#fff", border: "none", padding: "7px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600 }}>
+                  <button onClick={e => { e.stopPropagation(); onAdd(p); }} style={{ background: "#6B21A8", color: "#fff", border: "none", padding: "7px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600 }}>
                     + Ajouter
                   </button>
                 </div>
@@ -999,7 +999,7 @@ function CartPage({ cart, onRemove, onUpdateQty, goToShop, goToPayment, promoCod
     <div style={{ maxWidth: 600, margin: "0 auto", padding: "80px 20px", textAlign: "center", color: "#bbb" }}>
       <div style={{ fontSize: 52, marginBottom: 16 }}>🛒</div>
       <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 20 }}>Votre panier est vide</div>
-      <button onClick={goToShop} style={{ background: "#FF6B00", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 10, fontWeight: 600 }}>
+      <button onClick={goToShop} style={{ background: "#6B21A8", color: "#fff", border: "none", padding: "12px 28px", borderRadius: 10, fontWeight: 600 }}>
         Découvrir les produits
       </button>
     </div>
@@ -1032,7 +1032,7 @@ function CartPage({ cart, onRemove, onUpdateQty, goToShop, goToPayment, promoCod
           <div style={{ fontSize: 13, color: "#888" }}>Total à payer</div>
           <div style={{ fontWeight: 800, fontSize: 24 }}>{fmt(finalTotal)}</div>
         </div>
-        <button onClick={goToPayment} style={{ background: "#FF6B00", color: "#fff", border: "none", padding: "14px 34px", borderRadius: 12, fontWeight: 700, fontSize: 15 }}>
+        <button onClick={goToPayment} style={{ background: "#6B21A8", color: "#fff", border: "none", padding: "14px 34px", borderRadius: 12, fontWeight: 700, fontSize: 15 }}>
           Commander →
         </button>
       </div>
@@ -1067,7 +1067,7 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       <div style={{
         width: 30, height: 30, borderRadius: "50%",
-        background: step > n ? "#0a7c45" : step === n ? "#FF6B00" : "#e0e0e0",
+        background: step > n ? "#0a7c45" : step === n ? "#6B21A8" : "#e0e0e0",
         color: step >= n ? "#fff" : "#aaa",
         display: "flex", alignItems: "center", justifyContent: "center",
         fontWeight: 700, fontSize: 13,
@@ -1109,7 +1109,7 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
                 {errors[f.key] && <span style={{ fontSize: 11, color: "#e53e3e", marginTop: 3, display: "block" }}>{errors[f.key]}</span>}
               </div>
             ))}
-            <button onClick={() => { if (validate()) setStep(2); }} style={{ width: "100%", background: "#FF6B00", color: "#fff", border: "none", padding: "14px", borderRadius: 12, fontWeight: 700, fontSize: 15 }}>
+            <button onClick={() => { if (validate()) setStep(2); }} style={{ width: "100%", background: "#6B21A8", color: "#fff", border: "none", padding: "14px", borderRadius: 12, fontWeight: 700, fontSize: 15 }}>
               Continuer →
             </button>
           </div>
@@ -1122,7 +1122,7 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
               <div key={m.key} onClick={() => setForm(p => ({ ...p, method: m.key }))} style={{
                 display: "flex", alignItems: "center", gap: 14, padding: "14px 16px",
                 borderRadius: 12, marginBottom: 10, cursor: "pointer",
-                border: `2px solid ${form.method === m.key ? "#FF6B00" : "#e0e0e0"}`,
+                border: `2px solid ${form.method === m.key ? "#6B21A8" : "#e0e0e0"}`,
                 background: form.method === m.key ? "#f8f7f4" : "#fff",
               }}>
                 <span style={{ fontSize: 26 }}>{m.icon}</span>
@@ -1130,15 +1130,15 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
                   <div style={{ fontWeight: 600, fontSize: 14 }}>{m.label}</div>
                   <div style={{ fontSize: 12, color: "#888" }}>{m.sub}</div>
                 </div>
-                <div style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${form.method === m.key ? "#FF6B00" : "#ccc"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  {form.method === m.key && <div style={{ width: 9, height: 9, background: "#FF6B00", borderRadius: "50%" }} />}
+                <div style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${form.method === m.key ? "#6B21A8" : "#ccc"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {form.method === m.key && <div style={{ width: 9, height: 9, background: "#6B21A8", borderRadius: "50%" }} />}
                 </div>
               </div>
             ))}
 
             {/* ✅ Instructions Orange Money */}
             {form.method === "mobile" && (
-              <div style={{ background: "#fff8f0", border: "2px solid #ff6600", borderRadius: 12, padding: "16px 18px", marginBottom: 12 }}>
+              <div style={{ background: "#F5F0FF", border: "2px solid #ff6600", borderRadius: 12, padding: "16px 18px", marginBottom: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                   <span style={{ fontSize: 28 }}>🟠</span>
                   <div style={{ fontWeight: 700, fontSize: 15, color: "#ff6600" }}>Paiement Orange Money</div>
@@ -1156,7 +1156,7 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
               </div>
             )}
 
-            <div style={{ background: "#FFF8F3", borderRadius: 10, padding: "14px 16px", margin: "16px 0" }}>
+            <div style={{ background: "#FAF8FF", borderRadius: 10, padding: "14px 16px", margin: "16px 0" }}>
               <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 10 }}>Récapitulatif</div>
               {cart.map(i => (
                 <div key={i.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4, color: "#555" }}>
@@ -1169,7 +1169,7 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
             </div>
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => setStep(1)} style={{ flex: 1, background: "#f4f4f4", color: "#555", border: "none", padding: "13px", borderRadius: 12, fontWeight: 600 }}>← Retour</button>
-              <button onClick={() => setStep(3)} style={{ flex: 2, background: "#FF6B00", color: "#fff", border: "none", padding: "13px", borderRadius: 12, fontWeight: 700 }}>Payer {fmt(total)} →</button>
+              <button onClick={() => setStep(3)} style={{ flex: 2, background: "#6B21A8", color: "#fff", border: "none", padding: "13px", borderRadius: 12, fontWeight: 700 }}>Payer {fmt(total)} →</button>
             </div>
           </div>
         )}
@@ -1251,7 +1251,7 @@ function OrdersPage({ orders, loading }) {
                   </div>
                 )}
                 {o.status === "En transit" && (
-                  <div style={{ background: "#fff8e1", borderRadius: 8, padding: "10px 14px" }}>
+                  <div style={{ background: "#F5F0FF", borderRadius: 8, padding: "10px 14px" }}>
                     <div style={{ fontSize: 12, color: "#b76e00", fontWeight: 500, marginBottom: 6 }}>📦 En cours de livraison</div>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#888", marginBottom: 4 }}>
                       <span>Reçue</span><span>Préparée</span><span>Expédiée</span><span>Livrée</span>
@@ -1343,8 +1343,8 @@ function AdminPage({ products, setProducts, orders, setOrders }) {
         {[{ key: "overview", label: "Vue d'ensemble" }, { key: "products", label: "Produits" }, { key: "orders", label: "Commandes" }].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)} style={{
             padding: "10px 20px", border: "none", background: "transparent",
-            fontWeight: tab === t.key ? 700 : 400, color: tab === t.key ? "#FF6B00" : "#888",
-            borderBottom: `2px solid ${tab === t.key ? "#FF6B00" : "transparent"}`,
+            fontWeight: tab === t.key ? 700 : 400, color: tab === t.key ? "#6B21A8" : "#888",
+            borderBottom: `2px solid ${tab === t.key ? "#6B21A8" : "transparent"}`,
             fontSize: 14, marginBottom: -1,
           }}>{t.label}</button>
         ))}
@@ -1356,7 +1356,7 @@ function AdminPage({ products, setProducts, orders, setOrders }) {
             {[
               { label: "Chiffre d'affaires", value: fmt(totalRevenue), icon: "💰", bg: "#e6f7ef" },
               { label: "Commandes totales",  value: orders.length,     icon: "📦", bg: "#e8f0fe" },
-              { label: "Livrées",            value: delivered,         icon: "✅", bg: "#fff8e1" },
+              { label: "Livrées",            value: delivered,         icon: "✅", bg: "#F5F0FF" },
               { label: "Produits actifs",    value: products.length,   icon: "🏷",  bg: "#fce8f0" },
             ].map(m => (
               <div key={m.label} style={{ background: m.bg, borderRadius: 14, padding: "20px 18px" }}>
@@ -1374,7 +1374,7 @@ function AdminPage({ products, setProducts, orders, setOrders }) {
               const count = orders.filter(o => o.status === s).length;
               const pct = orders.length > 0 ? Math.round(count / orders.length * 100) : 0;
               const colors = { "En cours": "#1a56db", "En transit": "#b76e00", "Livré": "#0a7c45", "Annulé": "#c0392b" };
-              const bgs = { "En cours": "#e8f0fe", "En transit": "#fff8e1", "Livré": "#e6f7ef", "Annulé": "#fce8e8" };
+              const bgs = { "En cours": "#e8f0fe", "En transit": "#F5F0FF", "Livré": "#e6f7ef", "Annulé": "#fce8e8" };
               return (
                 <div key={s} style={{ marginBottom: 14 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 5 }}>
@@ -1463,7 +1463,7 @@ function ProfilePage({ user, orders, favorites, onClose, onSelect, setShowParrai
       </button>
 
       {/* En-tête profil */}
-      <div style={{ background: "linear-gradient(135deg, #FF6B00 0%, #cc5500 100%)", borderRadius: 16, padding: "24px", marginBottom: 20, color: "#fff", display: "flex", alignItems: "center", gap: 16 }}>
+      <div style={{ background: "linear-gradient(135deg, #4C1D95 0%, #6B21A8 50%, #D4AF37 100%)", borderRadius: 16, padding: "24px", marginBottom: 20, color: "#fff", display: "flex", alignItems: "center", gap: 16 }}>
         <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#fff2", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28 }}>
           👤
         </div>
@@ -1495,8 +1495,8 @@ function ProfilePage({ user, orders, favorites, onClose, onSelect, setShowParrai
           <button key={t.key} onClick={() => setTab(t.key)} style={{
             padding: "10px 20px", border: "none", background: "transparent",
             fontWeight: tab === t.key ? 700 : 400,
-            color: tab === t.key ? "#FF6B00" : "#888",
-            borderBottom: `2px solid ${tab === t.key ? "#FF6B00" : "transparent"}`,
+            color: tab === t.key ? "#6B21A8" : "#888",
+            borderBottom: `2px solid ${tab === t.key ? "#6B21A8" : "transparent"}`,
             fontSize: 14, marginBottom: -1,
           }}>{t.label}</button>
         ))}
@@ -1532,7 +1532,7 @@ function ProfilePage({ user, orders, favorites, onClose, onSelect, setShowParrai
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               {favorites.map(p => (
                 <div key={p.id} onClick={() => onSelect(p)} style={{ background: "#fff", borderRadius: 14, border: "1px solid #ebebeb", overflow: "hidden", cursor: "pointer" }}>
-                  <div style={{ height: 120, overflow: "hidden", background: "#FFF8F3" }}>
+                  <div style={{ height: 120, overflow: "hidden", background: "#FAF8FF" }}>
                     <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => e.target.style.display = "none"} />
                   </div>
                   <div style={{ padding: "10px 12px" }}>
@@ -1578,7 +1578,7 @@ function AdminLoginModal({ onSuccess, onClose }) {
           style={{ width: "100%", padding: "11px 14px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 14, marginBottom: 12 }}
         />
         {error && <div style={{ background: "#fce8e8", color: "#c0392b", padding: "8px 12px", borderRadius: 8, fontSize: 13, marginBottom: 12 }}>✗ {error}</div>}
-        <button onClick={handleSubmit} style={{ width: "100%", background: "#FF6B00", color: "#fff", border: "none", padding: "13px", borderRadius: 12, fontWeight: 700, fontSize: 15, marginBottom: 10 }}>
+        <button onClick={handleSubmit} style={{ width: "100%", background: "#6B21A8", color: "#fff", border: "none", padding: "13px", borderRadius: 12, fontWeight: 700, fontSize: 15, marginBottom: 10 }}>
           Accéder au tableau de bord
         </button>
         <button onClick={onClose} style={{ width: "100%", background: "#f4f4f4", color: "#555", border: "none", padding: "11px", borderRadius: 12, fontWeight: 500, fontSize: 14 }}>
@@ -1797,7 +1797,7 @@ Merci pour votre commande! 🙏`;
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
   if (checkingAuth) return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#FFF8F3" }}>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#FAF8FF" }}>
       <div style={{ textAlign: "center", color: "#aaa" }}>
         <div style={{ fontSize: 48, marginBottom: 12 }}>🛍</div>
         <div>Chargement...</div>

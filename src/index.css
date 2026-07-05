@@ -1,5 +1,5 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: #f8f7f4; color: #1a1a1a; min-height: 100vh; }
+body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: #FAF8FF; color: #1a1a1a; min-height: 100vh; }
 button { cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
 button:hover { opacity: 0.88; }
 button:active { transform: scale(0.97); }
