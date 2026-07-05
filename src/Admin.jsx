@@ -228,17 +228,30 @@ function AdminDashboard({ onLogout }) {
   const [productForm, setProductForm] = useState({ name: "", category: "Mode", price: "", stock: "", image: "", description: "", sizes: "", colors: "" });
   const [saving, setSaving] = useState(false);
   const [searchOrder, setSearchOrder] = useState("");
+  const [users, setUsers] = useState([]);
+  const [faqItems, setFaqItems] = useState([
+    { q: "Comment passer une commande ?", a: "Ajoutez un produit au panier, puis cliquez sur Commander et suivez les étapes." },
+    { q: "Quels sont les modes de paiement ?", a: "Nous acceptons Orange Money, le paiement à la livraison et Mastercard." },
+    { q: "Comment suivre ma commande ?", a: "Allez dans l'onglet Suivi et entrez votre numéro de commande (ex: CMD-123456)." },
+    { q: "Puis-je retourner un produit ?", a: "Oui, contactez-nous sur WhatsApp dans les 48h après réception." },
+    { q: "Quels sont les délais de livraison ?", a: "La livraison prend généralement 1 à 3 jours selon votre localisation." },
+  ]);
+  const [editFaq, setEditFaq] = useState(null);
+  const [newFaq, setNewFaq] = useState({ q: "", a: "" });
+  const [showFaqForm, setShowFaqForm] = useState(false);
 
   const loadData = async () => {
     setLoading(true);
-    const [{ data: o }, { data: p }, { data: v }] = await Promise.all([
+    const [{ data: o }, { data: p }, { data: v }, { data: u }] = await Promise.all([
       supabase.from("commandes").select("*").order("created_at", { ascending: false }),
       supabase.from("produits").select("*").order("id"),
       supabase.from("vendeurs").select("*").order("created_at", { ascending: false }),
+      supabase.from("utilisateurs").select("*").order("created_at", { ascending: false }),
     ]);
     setOrders(o || []);
     setProducts(p || []);
     setVendors(v || []);
+    setUsers(u || []);
     setLoading(false);
   };
 
@@ -312,6 +325,23 @@ function AdminDashboard({ onLogout }) {
   const updateOrderStatus = async (id, status) => {
     await supabase.from("commandes").update({ status }).eq("id", id);
     setOrders(os => os.map(o => o.id === id ? { ...o, status } : o));
+
+    // Notification WhatsApp automatique au client
+    const order = orders.find(o => o.id === id);
+    if (order && order.client_telephone) {
+      const statusEmoji = { "En cours": "⏳", "En transit": "🚚", "Livré": "✅", "Annulé": "❌" }[status] || "📦";
+      const msg = `Bonjour ${order.client_nom} 👋
+
+${statusEmoji} Votre commande *${order.id}* est maintenant *"${status}"*.
+
+${status === "En transit" ? "🚚 Votre colis est en route !" : status === "Livré" ? "🎉 Votre commande a été livrée !" : ""}
+
+📍 Suivez votre commande : https://marche-plus.vercel.app/?suivi=${order.id}
+
+Merci de votre confiance ! 🛍
+*Marché+*`;
+      window.open("https://wa.me/" + order.client_telephone.replace(/\D/g,"") + "?text=" + encodeURIComponent(msg), "_blank");
+    }
   };
 
   const filteredOrders = orders.filter(o =>
@@ -323,6 +353,8 @@ function AdminDashboard({ onLogout }) {
     { key: "products", label: "Produits",        icon: "🛍" },
     { key: "orders",   label: "Commandes",       icon: "📦", badge: pendingOrders },
     { key: "vendors",  label: "Vendeurs",         icon: "🏪" },
+    { key: "users",    label: "Utilisateurs",     icon: "👥" },
+    { key: "faq",      label: "FAQ / Contact",    icon: "❓" },
   ];
 
   return (
@@ -670,6 +702,170 @@ function AdminDashboard({ onLogout }) {
                 })}
               </div>
             )}
+          </>
+        )}
+
+        {/* UTILISATEURS */}
+        {tab === "users" && (
+          <>
+            <div style={{ marginBottom: 22 }}>
+              <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 2 }}>Utilisateurs</h2>
+              <p style={{ fontSize: 13, color: "#888" }}>{users.length} utilisateur{users.length > 1 ? "s" : ""} inscrit{users.length > 1 ? "s" : ""}</p>
+            </div>
+
+            {/* Rapport mensuel */}
+            <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #ebebeb", padding: "20px 22px", marginBottom: 20 }}>
+              <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>📧 Rapport mensuel des ventes</h3>
+              <p style={{ fontSize: 13, color: "#888", marginBottom: 14 }}>Générez un rapport mensuel et envoyez-le par email</p>
+              <div style={{ background: "#f8f7f4", borderRadius: 10, padding: "14px 16px", marginBottom: 14 }}>
+                {(() => {
+                  const now = new Date();
+                  const month = now.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+                  const monthOrders = orders.filter(o => o.date?.startsWith(now.toISOString().slice(0,7)));
+                  const monthRevenue = monthOrders.reduce((s, o) => s + o.total, 0);
+                  return (
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                      {[
+                        { label: "Mois", value: month },
+                        { label: "Commandes", value: monthOrders.length },
+                        { label: "CA du mois", value: fmt(monthRevenue) },
+                      ].map(s => (
+                        <div key={s.label} style={{ textAlign: "center" }}>
+                          <div style={{ fontWeight: 800, fontSize: 16 }}>{s.value}</div>
+                          <div style={{ fontSize: 12, color: "#888" }}>{s.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+              <button onClick={() => {
+                const now = new Date();
+                const month = now.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+                const monthOrders = orders.filter(o => o.date?.startsWith(now.toISOString().slice(0,7)));
+                const monthRevenue = monthOrders.reduce((s, o) => s + o.total, 0);
+                const commission = Math.round(monthRevenue * 0.1);
+                const rapport = `📊 RAPPORT MENSUEL MARCHÉ+
+${month}
+
+` +
+                  `💰 Chiffre d'affaires: ${fmt(monthRevenue)}
+` +
+                  `📦 Commandes: ${monthOrders.length}
+` +
+                  `✅ Livrées: ${monthOrders.filter(o => o.status === "Livré").length}
+` +
+                  `⏳ En cours: ${monthOrders.filter(o => o.status === "En cours").length}
+
+` +
+                  `Généré le ${new Date().toLocaleDateString("fr-FR")} par Marché+`;
+                const mailtoLink = "mailto:kone91139@gmail.com?subject=" + encodeURIComponent("Rapport mensuel Marché+ - " + month) + "&body=" + encodeURIComponent(rapport);
+                window.open(mailtoLink);
+              }} style={{ background: "#1a56db", color: "#fff", border: "none", padding: "10px 20px", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer" }}>
+                📧 Envoyer le rapport par email
+              </button>
+            </div>
+
+            {loading ? <p style={{ color: "#aaa" }}>Chargement...</p> : users.length === 0 ? (
+              <div style={{ textAlign: "center", padding: 60, color: "#bbb" }}>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>👥</div>
+                <div>Aucun utilisateur enregistré</div>
+                <div style={{ fontSize: 13, marginTop: 6 }}>Les utilisateurs apparaîtront ici après leur première connexion</div>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {users.map(u => (
+                  <div key={u.id} style={{ background: "#fff", borderRadius: 12, border: "1px solid #ebebeb", padding: "14px 20px", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+                    <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#FF6B00", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16, flexShrink: 0 }}>
+                      {u.email?.[0]?.toUpperCase()}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: 14 }}>{u.email}</div>
+                      <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>Inscrit le {new Date(u.created_at).toLocaleDateString("fr-FR")}</div>
+                    </div>
+                    <span style={{ background: u.statut === "bloque" ? "#fce8e8" : "#e6f7ef", color: u.statut === "bloque" ? "#c0392b" : "#0a7c45", fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 99 }}>
+                      {u.statut === "bloque" ? "🚫 Bloqué" : "✅ Actif"}
+                    </span>
+                    <button onClick={async () => {
+                      const newStatus = u.statut === "bloque" ? "actif" : "bloque";
+                      await supabase.from("utilisateurs").upsert({ id: u.id, email: u.email, statut: newStatus });
+                      setUsers(us => us.map(x => x.id === u.id ? { ...x, statut: newStatus } : x));
+                    }} style={{ background: u.statut === "bloque" ? "#e6f7ef" : "#fce8e8", color: u.statut === "bloque" ? "#0a7c45" : "#c0392b", border: "none", padding: "7px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                      {u.statut === "bloque" ? "Débloquer" : "Bloquer"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* FAQ / CONTACT */}
+        {tab === "faq" && (
+          <>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
+              <div>
+                <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 2 }}>FAQ & Contact</h2>
+                <p style={{ fontSize: 13, color: "#888" }}>Gérez les questions fréquentes de vos clients</p>
+              </div>
+              <button onClick={() => setShowFaqForm(!showFaqForm)} style={{ background: "#FF6B00", color: "#fff", border: "none", padding: "10px 20px", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer" }}>
+                {showFaqForm ? "Annuler" : "+ Ajouter une question"}
+              </button>
+            </div>
+
+            {showFaqForm && (
+              <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #ebebeb", padding: "20px", marginBottom: 20 }}>
+                <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 16 }}>Nouvelle question FAQ</h3>
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ fontSize: 13, fontWeight: 500, display: "block", marginBottom: 6 }}>Question</label>
+                  <input value={newFaq.q} onChange={e => setNewFaq(p => ({ ...p, q: e.target.value }))} placeholder="Ex: Comment retourner un produit ?" style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 14 }} />
+                </div>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ fontSize: 13, fontWeight: 500, display: "block", marginBottom: 6 }}>Réponse</label>
+                  <textarea value={newFaq.a} onChange={e => setNewFaq(p => ({ ...p, a: e.target.value }))} placeholder="Entrez la réponse..." rows={3} style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 14, fontFamily: "inherit", resize: "vertical" }} />
+                </div>
+                <button onClick={() => {
+                  if (!newFaq.q || !newFaq.a) return;
+                  setFaqItems(prev => [...prev, newFaq]);
+                  setNewFaq({ q: "", a: "" });
+                  setShowFaqForm(false);
+                }} style={{ background: "#0a7c45", color: "#fff", border: "none", padding: "10px 22px", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer" }}>
+                  ✓ Ajouter
+                </button>
+              </div>
+            )}
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {faqItems.map((item, i) => (
+                <div key={i} style={{ background: "#fff", borderRadius: 12, border: "1px solid #ebebeb", padding: "16px 20px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: "#FF6B00", marginBottom: 6 }}>❓ {item.q}</div>
+                      <div style={{ fontSize: 13, color: "#555", lineHeight: 1.6 }}>💬 {item.a}</div>
+                    </div>
+                    <button onClick={() => setFaqItems(prev => prev.filter((_, j) => j !== i))} style={{ background: "#fce8e8", color: "#c0392b", border: "none", padding: "5px 10px", borderRadius: 7, fontSize: 12, cursor: "pointer", flexShrink: 0 }}>🗑</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Info contact */}
+            <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #ebebeb", padding: "20px 22px", marginTop: 20 }}>
+              <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14 }}>📞 Informations de contact</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                {[
+                  { label: "WhatsApp", value: "+223 91 09 05 23", icon: "📱" },
+                  { label: "Email", value: "kone91139@gmail.com", icon: "📧" },
+                  { label: "Boutique en ligne", value: "marche-plus.vercel.app", icon: "🌐" },
+                  { label: "Admin", value: "marche-plus.vercel.app/admin.html", icon: "⚙️" },
+                ].map(c => (
+                  <div key={c.label} style={{ background: "#f8f7f4", borderRadius: 10, padding: "12px 14px" }}>
+                    <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>{c.icon} {c.label}</div>
+                    <div style={{ fontWeight: 600, fontSize: 13 }}>{c.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </>
         )}
 
