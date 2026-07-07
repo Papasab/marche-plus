@@ -246,7 +246,7 @@ function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount,
           display: "flex", flexDirection: "column", gap: 6,
           boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
         }}>
-          {[{ key: "shop", label: "🏪 Boutique" }, { key: "orders", label: "📦 Commandes" }, { key: "tracking", label: "📍 Suivi commande" }, { key: "admin", label: "⚙️ Admin", adminOnly: true }].filter(item => !item.adminOnly || user?.email === ADMIN_EMAIL).map(({ key, label }) => (
+          {[{ key: "home", label: "🏠 Accueil" }, { key: "shop", label: "🏪 Boutique" }, { key: "orders", label: "📦 Commandes" }, { key: "tracking", label: "📍 Suivi commande" }, { key: "admin", label: "⚙️ Admin", adminOnly: true }].filter(item => !item.adminOnly || user?.email === ADMIN_EMAIL).map(({ key, label }) => (
             <button key={key} onClick={() => { setPage(key); setMenuOpen(false); }} style={{
               background: page === key ? "#1a1a1a" : "#f4f4f4",
               color: page === key ? "#fff" : "#333",
@@ -909,6 +909,161 @@ Code : *${myParrainage?.code}*`;
           )}
         </>
       )}
+    </div>
+  );
+}
+
+
+// ─── Page d'accueil ───────────────────────────────────────────────
+function HomePage({ products, onSelect, onAdd, isFavorite, onToggleFav, setPage }) {
+  const [currentBanner, setCurrentBanner] = useState(0);
+  const featured = products.slice(0, 4);
+  const newArrivals = products.slice(4, 8);
+  const onSale = products.filter((_, i) => i % 3 === 0).slice(0, 4);
+
+  const BANNERS = [
+    { title: "Bienvenue sur Marché+", subtitle: "La meilleure boutique en ligne du Mali", cta: "Découvrir", icon: "🛍", bg: "linear-gradient(135deg, #4C1D95 0%, #6B21A8 60%, #D4AF37 100%)" },
+    { title: "Orange Money accepté", subtitle: "Payez facilement avec #144#", cta: "Commander", icon: "🟠", bg: "linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 60%, #D4AF37 100%)" },
+    { title: "Livraison rapide", subtitle: "Recevez vos commandes en 1-3 jours", cta: "Voir les produits", icon: "🚚", bg: "linear-gradient(135deg, #0a7c45 0%, #0f6e56 60%, #D4AF37 100%)" },
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentBanner(b => (b + 1) % BANNERS.length), 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const CATEGORIES = [
+    { label: "Mode", icon: "👗", color: "#6B21A8", bg: "#F3E8FF" },
+    { label: "Électronique", icon: "📱", color: "#1a56db", bg: "#e8f0fe" },
+    { label: "Maison", icon: "🏠", color: "#0a7c45", bg: "#e6f7ef" },
+    { label: "Bureau", icon: "💼", color: "#b76e00", bg: "#fff8e1" },
+  ];
+
+  return (
+    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 20px 40px" }}>
+
+      {/* Bannière principale */}
+      <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", marginBottom: 32, marginTop: 20 }}>
+        {BANNERS.map((b, i) => (
+          <div key={i} style={{
+            display: i === currentBanner ? "flex" : "none",
+            background: b.bg,
+            padding: "48px 40px",
+            alignItems: "center",
+            justifyContent: "space-between",
+            minHeight: 200,
+            animation: "fadeIn .5s ease",
+          }}>
+            <div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginBottom: 8, letterSpacing: ".1em", textTransform: "uppercase" }}>Marché+ Mali</div>
+              <h1 style={{ fontWeight: 900, fontSize: 32, color: "#fff", marginBottom: 10, lineHeight: 1.2 }}>{b.title}</h1>
+              <p style={{ fontSize: 16, color: "rgba(255,255,255,0.8)", marginBottom: 24 }}>{b.subtitle}</p>
+              <button onClick={() => setPage("shop")} style={{ background: "#D4AF37", color: "#1a1a1a", border: "none", padding: "12px 28px", borderRadius: 99, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+                {b.cta} →
+              </button>
+            </div>
+            <div style={{ fontSize: 80, opacity: 0.9 }}>{b.icon}</div>
+          </div>
+        ))}
+        {/* Dots */}
+        <div style={{ position: "absolute", bottom: 14, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 6 }}>
+          {BANNERS.map((_, i) => (
+            <div key={i} onClick={() => setCurrentBanner(i)} style={{ width: i === currentBanner ? 20 : 8, height: 8, borderRadius: 99, background: i === currentBanner ? "#D4AF37" : "rgba(255,255,255,0.4)", cursor: "pointer", transition: "all .3s" }} />
+          ))}
+        </div>
+      </div>
+
+      {/* Catégories */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 40 }}>
+        {CATEGORIES.map(c => (
+          <div key={c.label} onClick={() => setPage("shop")} style={{ background: c.bg, borderRadius: 16, padding: "20px 16px", textAlign: "center", cursor: "pointer", transition: "transform .2s" }}
+            onMouseEnter={e => e.currentTarget.style.transform = "translateY(-4px)"}
+            onMouseLeave={e => e.currentTarget.style.transform = "none"}>
+            <div style={{ fontSize: 32, marginBottom: 8 }}>{c.icon}</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: c.color }}>{c.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Promotions */}
+      <div style={{ background: "linear-gradient(135deg, #D4AF37 0%, #b8960c 100%)", borderRadius: 16, padding: "20px 24px", marginBottom: 40, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <div style={{ fontWeight: 800, fontSize: 20, color: "#1a1a1a" }}>🎁 Codes promo disponibles !</div>
+          <div style={{ fontSize: 14, color: "#333", marginTop: 4 }}>Utilisez <strong>BIENVENUE</strong> pour 10% de réduction sur votre première commande</div>
+        </div>
+        <button onClick={() => setPage("shop")} style={{ background: "#1a1a1a", color: "#D4AF37", border: "none", padding: "11px 24px", borderRadius: 99, fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+          Profiter →
+        </button>
+      </div>
+
+      {/* Produits vedettes */}
+      <div style={{ marginBottom: 40 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <h2 style={{ fontWeight: 800, fontSize: 20 }}>⭐ Produits vedettes</h2>
+          <button onClick={() => setPage("shop")} style={{ background: "none", border: "1px solid #6B21A8", color: "#6B21A8", padding: "7px 16px", borderRadius: 99, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Voir tout →</button>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px,1fr))", gap: 16 }}>
+          {featured.map(p => <ProductCard key={p.id} p={p} onSelect={onSelect} onAdd={onAdd} isFavorite={isFavorite} onToggleFav={onToggleFav} />)}
+        </div>
+      </div>
+
+      {/* Nouveautés */}
+      <div style={{ marginBottom: 40 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <h2 style={{ fontWeight: 800, fontSize: 20 }}>🆕 Nouveautés</h2>
+          <button onClick={() => setPage("shop")} style={{ background: "none", border: "1px solid #6B21A8", color: "#6B21A8", padding: "7px 16px", borderRadius: 99, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Voir tout →</button>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px,1fr))", gap: 16 }}>
+          {newArrivals.map(p => <ProductCard key={p.id} p={p} onSelect={onSelect} onAdd={onAdd} isFavorite={isFavorite} onToggleFav={onToggleFav} />)}
+        </div>
+      </div>
+
+      {/* Banner parrainage */}
+      <div style={{ background: "linear-gradient(135deg, #4C1D95, #6B21A8)", borderRadius: 16, padding: "28px 32px", textAlign: "center", color: "#fff" }}>
+        <div style={{ fontSize: 40, marginBottom: 12 }}>🎁</div>
+        <h3 style={{ fontWeight: 800, fontSize: 20, marginBottom: 8 }}>Invitez vos amis et gagnez 1 000 FCFA !</h3>
+        <p style={{ fontSize: 14, opacity: 0.85, marginBottom: 20 }}>Pour chaque ami qui commande, vous recevez 1 000 FCFA de réduction</p>
+        <button onClick={() => setPage("profile")} style={{ background: "#D4AF37", color: "#1a1a1a", border: "none", padding: "11px 28px", borderRadius: 99, fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+          Commencer à parrainer →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Carte Produit (réutilisable) ─────────────────────────────────
+function ProductCard({ p, onSelect, onAdd, isFavorite, onToggleFav }) {
+  return (
+    <div style={{ background: "#fff", borderRadius: 16, border: "0.5px solid #ebebeb", overflow: "hidden", cursor: "pointer", transition: "transform .2s, box-shadow .2s" }}
+      onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 12px 32px rgba(107,33,168,0.12)"; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}
+      onClick={() => onSelect(p)}>
+      <div style={{ position: "relative" }}>
+        <div style={{ height: 180, overflow: "hidden", background: "#FAF8FF" }}>
+          <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform .4s" }}
+            onMouseEnter={e => e.target.style.transform = "scale(1.08)"}
+            onMouseLeave={e => e.target.style.transform = "scale(1)"}
+            onError={e => e.target.style.display = "none"} />
+        </div>
+        <button onClick={e => { e.stopPropagation(); onToggleFav(p); }} style={{ position: "absolute", top: 10, right: 10, width: 34, height: 34, borderRadius: "50%", background: "#fff", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+          {isFavorite(p.id) ? "❤️" : "🤍"}
+        </button>
+        {p.stock < 10 && <div style={{ position: "absolute", top: 10, left: 10, background: "#fce8e8", color: "#c0392b", fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 6 }}>Stock limité</div>}
+      </div>
+      <div style={{ padding: "14px 16px" }}>
+        <div style={{ fontSize: 11, color: "#6B21A8", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 4 }}>{p.category}</div>
+        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6, lineHeight: 1.3, color: "#1a1a1a" }}>{p.name}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 10 }}>
+          <span style={{ fontSize: 12, color: "#D4AF37" }}>{"★".repeat(Math.floor(p.rating))}</span>
+          <span style={{ fontSize: 11, color: "#aaa" }}>{p.rating}</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span style={{ fontWeight: 900, fontSize: 16, color: "#D4AF37" }}>{fmt(p.price)}</span>
+          <button onClick={e => { e.stopPropagation(); onAdd(p); }} style={{ background: "#6B21A8", color: "#fff", border: "none", padding: "8px 14px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+            + Ajouter
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
