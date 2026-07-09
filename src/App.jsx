@@ -1850,10 +1850,11 @@ export default function App() {
     // Admin voit toutes les commandes, clients voient seulement les leurs
     let query = supabase.from("commandes").select("*").order("created_at", { ascending: false });
     if (user?.email !== ADMIN_EMAIL) {
-      query = query.eq("user_id", user?.id);
+      query = query.or(`user_id.eq.${user?.id},client_telephone.eq.${profil?.telephone || ""}`);
     }
     const { data, error } = await query;
     if (!error && data) setOrders(data);
+    else setOrders([]);
     setLoadingOrders(false);
   };
 
