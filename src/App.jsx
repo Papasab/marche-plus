@@ -1847,7 +1847,12 @@ export default function App() {
 
   const fetchOrders = async () => {
     setLoadingOrders(true);
-    const { data, error } = await supabase.from("commandes").select("*").order("created_at", { ascending: false });
+    // Admin voit toutes les commandes, clients voient seulement les leurs
+    let query = supabase.from("commandes").select("*").order("created_at", { ascending: false });
+    if (user?.email !== ADMIN_EMAIL) {
+      query = query.eq("user_id", user?.id);
+    }
+    const { data, error } = await query;
     if (!error && data) setOrders(data);
     setLoadingOrders(false);
   };
