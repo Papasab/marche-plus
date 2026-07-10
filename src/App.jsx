@@ -14,43 +14,43 @@ const supabase        = createClient(SUPABASE_URL, SUPABASE_KEY);
 // Les produits sont chargés depuis Supabase automatiquement
 const INITIAL_PRODUCTS = [
   { id: 1,  name: "Sac à dos urbain",    category: "Mode",         price: 45000, stock: 12, image: "/images/sac-dos.jpg",
-    images: ["/images/sac-dos.jpg", "/images/sac-dos.jpg", "/images/sac-dos.jpg", "/images/sac-dos.jpg"],
+    images: ["/images/sac-dos.jpg", "/images/sac-dos.png", "/images/sac-dos.png", "/images/sac-dos.png"],
     description: "Sac à dos urbain et élégant, parfait pour le quotidien. Compartiments multiples, matière imperméable et bretelles rembourrées pour un confort optimal.",
     sizes: ["S", "M", "L"], colors: ["Noir", "Gris", "Bleu"],
     rating: 4.5, reviewsList: [{ user: "Aminata", note: 5, comment: "Très beau sac, livraison rapide !" }, { user: "Moussa", note: 4, comment: "Bonne qualité, je recommande." }] },
 
   { id: 2,  name: "Casque Bluetooth",     category: "Électronique", price: 32000, stock: 8,  image: "/images/casque.jpg",
-    images: ["/images/casque.jpg", "/images/casque.jpg", "/images/casque.jpg", "/images/casque.jpg"],
+    images: ["/images/casque.jpg", "/images/casque2.png", "/images/casque3.png", "/images/casque4.png"],
     description: "Casque audio Bluetooth avec réduction de bruit active. Autonomie 30h, charge rapide USB-C, son haute fidélité.",
     sizes: [], colors: ["Noir", "Blanc"],
     rating: 4.7, reviewsList: [{ user: "Ibrahim", note: 5, comment: "Son incroyable !" }, { user: "Fatoumata", note: 4, comment: "Très confortable." }] },
 
   { id: 3,  name: "Lampe de bureau LED",  category: "Maison",       price: 18500, stock: 20, image: "/images/lampe.jpg",
-    images: ["/images/lampe.jpg", "/images/lampe.jpg", "/images/lampe.jpg"],
+    images: ["/images/lampe.jpg", "/images/lampe2.png", "/images/lampe3.png"],
     description: "Lampe LED avec luminosité réglable, 3 modes de couleur. Économe en énergie, idéale pour le bureau ou la chambre.",
     sizes: [], colors: ["Blanc", "Noir"],
     rating: 4.2, reviewsList: [{ user: "Kadiatou", note: 4, comment: "Belle lampe, lumière douce." }] },
 
   { id: 4,  name: "Montre connectée",     category: "Électronique", price: 89000, stock: 5,  image: "/images/montre.jpg",
-    images: ["/images/montre.jpg", "/images/montre.jpg", "/images/montre.jpg", "/images/montre.jpg"],
+    images: ["/images/montre.jpg", "/images/montre2.png", "/images/montre3.png", "/images/montre4.png"],
     description: "Montre connectée avec suivi santé, GPS, notifications et étanchéité IP67. Autonomie 7 jours.",
     sizes: [], colors: ["Noir", "Argent", "Or"],
     rating: 4.8, reviewsList: [{ user: "Seydou", note: 5, comment: "Excellente montre !" }, { user: "Mariam", note: 5, comment: "Je l'adore !" }] },
 
   { id: 5,  name: "Chaussures de sport",  category: "Mode",         price: 55000, stock: 15, image: "/images/chaussures.jpg",
-    images: ["/images/chaussures.jpg", "/images/chaussures.jpg", "/images/chaussures.jpg", "/images/chaussures.jpg"],
+    images: ["/images/chaussures.jpg", "/images/chaussures2.png", "/images/chaussures3.png", "/images/chaussures4.png"],
     description: "Chaussures de sport légères et respirantes. Semelle antidérapante, idéales pour la course et la salle.",
     sizes: ["39", "40", "41", "42", "43", "44"], colors: ["Blanc", "Noir", "Rouge"],
     rating: 4.4, reviewsList: [{ user: "Boubacar", note: 4, comment: "Très légères et confortables." }] },
 
   { id: 6,  name: "Carnet premium",       category: "Bureau",       price: 8500,  stock: 50, image: "/images/carnet.jpg",
-    images: ["/images/carnet.jpg", "/images/carnet.jpg", "/images/carnet.jpg"],
+    images: ["/images/carnet.jpg", "/images/carnet2.png", "/images/carnet3.png"],
     description: "Carnet A5 à couverture rigide, 200 pages papier ivoire 90g/m². Idéal pour vos notes et croquis.",
     sizes: ["A5", "A4"], colors: ["Marron", "Noir", "Bleu"],
     rating: 4.1, reviewsList: [{ user: "Aissata", note: 4, comment: "Beau carnet, bonne qualité." }] },
 
   { id: 7,  name: "Thermos inox 1L",      category: "Maison",       price: 14000, stock: 30, image: "/images/thermos.jpg",
-    images: ["/images/thermos.jpg", "/images/thermos.jpg", "/images/thermos.jpg"],
+    images: ["/images/thermos.jpg", "/images/thermos2.jpg", "/images/thermos3.jpg"],
     description: "Thermos en acier inoxydable double paroi. Garde chaud 12h, froid 24h. Sans BPA, 1 litre.",
     sizes: ["500ml", "1L"], colors: ["Argent", "Noir", "Rouge"],
     rating: 4.6, reviewsList: [{ user: "Diallo", note: 5, comment: "Garde vraiment chaud longtemps !" }] },
@@ -643,9 +643,21 @@ function OrderTrackingPage({ supabase, orderId, onBack }) {
           </div>
 
           {/* Partager */}
-          <button onClick={() => navigator.clipboard.writeText(`https://marche-plus.vercel.app/?suivi=${order.id}`)} style={{ width: "100%", background: "#f4f4f4", color: "#555", border: "none", padding: "12px", borderRadius: 12, fontWeight: 500, fontSize: 14, cursor: "pointer" }}>
-            🔗 Copier le lien de suivi
-          </button>
+          <div style={{ display: "flex", gap: 10 }}>
+  <button onClick={() => navigator.clipboard.writeText(`https://marche-plus.vercel.app/?suivi=${order.id}`)} style={{ flex: 1, background: "#f4f4f4", color: "#555", border: "none", padding: "12px", borderRadius: 12, fontWeight: 500, fontSize: 14, cursor: "pointer" }}>
+    🔗 Copier le lien de suivi
+  </button>
+  {order.status === "En cours" && (
+    <button onClick={async () => {
+      if (window.confirm("Voulez-vous vraiment annuler cette commande ?")) {
+        await supabase.from("commandes").update({ status: "Annulé" }).eq("id", order.id);
+        setOrder({ ...order, status: "Annulé" });
+      }
+    }} style={{ background: "#fce8e8", color: "#c0392b", border: "none", padding: "12px 20px", borderRadius: 12, fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
+      ✗ Annuler
+    </button>
+  )}
+</div>
         </div>
       )}
     </div>
