@@ -1861,12 +1861,20 @@ export default function App() {
     setLoadingOrders(true);
     // Admin voit toutes les commandes, clients voient seulement les leurs
     let query = supabase.from("commandes").select("*").order("created_at", { ascending: false });
-    if (user?.email !== ADMIN_EMAIL) {
-      query = query.eq("user_id", user?.id);
+    
+    if (user?.email === ADMIN_EMAIL) {
+      const { data, error } = await query;
+      if (!error && data) setOrders(data);
+      else setOrders([]);
+    } else {
+      const { data, error } = await supabase
+        .from("commandes")
+        .select("*")
+        .eq("user_id", user?.id)
+        .order("created_at", { ascending: false });
+      if (!error && data) setOrders(data);
+      else setOrders([]);
     }
-    const { data, error } = await query;
-    if (!error && data) setOrders(data);
-    else setOrders([]);
     setLoadingOrders(false);
   };
 
@@ -1949,7 +1957,9 @@ Merci pour votre commande! 🙏`;
       client_telephone: form.phone,
       client_adresse:   form.address,
       paiement:         methodLabel,
+      user_id:          user?.id,
       produits:         JSON.stringify(cart.map(i => ({ nom: i.name, qty: i.qty, prix: i.price }))),
+      user_id:          user?.id,
     }).then(({ error }) => {
       if (error) console.error("Supabase error:", error);
     });
