@@ -225,6 +225,7 @@ function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount,
             👤 {user?.email?.split("@")[0]}
           </button>
           {favCount > 0 && <span style={{ background: "#fce8f0", color: "#c0392b", fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 99 }}>❤️ {favCount}</span>}
+          <button onClick={onVendor} style={{ background: hasVendor ? "#e6f7ef" : "#6B21A8", color: hasVendor ? "#0a7c45" : "#fff", border: "none", padding: "6px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>🏪 {hasVendor ? "Ma boutique" : "Vendre"}</button>
           <button onClick={onLogout} style={{ background: "#f4f4f4", color: "#666", border: "none", padding: "6px 12px", borderRadius: 8, fontSize: 12, fontWeight: 500 }}>
             Déco
           </button>
