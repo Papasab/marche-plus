@@ -14,7 +14,7 @@ const COMMISSION     = 10;
 const fmt = (n) => new Intl.NumberFormat("fr-FR").format(n) + " FCFA";
 
 const STATUS_COLORS = {
-  "En cours":   { bg: "#e8f0fe", color: "#1a56db" },
+  "En cours":   { bg: "#191b1f", color: "#1a56db" },
   "En transit": { bg: "#fff8e1", color: "#b76e00" },
   "Livré":      { bg: "#e6f7ef", color: "#0a7c45" },
   "Annulé":     { bg: "#fce8e8", color: "#c0392b" },
@@ -280,7 +280,7 @@ function AdminDashboard({ onLogout }) {
 
   const openAddProduct = () => {
     setEditProduct(null);
-    setProductForm({ name: "", category: "Mode", price: "", stock: "", image: "", description: "", sizes: "", colors: "" });
+    setProductForm({ name: "", category: "Mode", price: "", stock: "", image: "", description: "", sizes: "", colors: "", img2: "", img3: "" });
     setShowProductForm(true);
   };
 
@@ -289,6 +289,8 @@ function AdminDashboard({ onLogout }) {
     setProductForm({
       name: p.name, category: p.category, price: p.price, stock: p.stock,
       image: p.image || "", description: p.description || "",
+      img2: p.images?.split(",")?.[1] || "",
+      img3: p.images?.split(",")?.[2] || "",
       sizes: Array.isArray(p.sizes) ? p.sizes.join(",") : (p.sizes || ""),
       colors: Array.isArray(p.colors) ? p.colors.join(",") : (p.colors || ""),
     });
@@ -301,7 +303,7 @@ function AdminDashboard({ onLogout }) {
     const data = {
       name: productForm.name, category: productForm.category,
       price: parseInt(productForm.price) || 0, stock: parseInt(productForm.stock) || 0,
-      image: productForm.image, images: productForm.image,
+      image: productForm.image, images: Array.isArray(productForm.images) ? productForm.images.filter(Boolean).join(",") : productForm.image,
       description: productForm.description,
       sizes: productForm.sizes, colors: productForm.colors,
       rating: editProduct?.rating || 5, reviews: editProduct?.reviews || 0,
@@ -565,12 +567,22 @@ Merci de votre confiance ! 🛍
                   {/* Colonne gauche */}
                   <div>
                     <div style={{ marginBottom: 14 }}>
-                      <label style={{ fontSize: 13, fontWeight: 500, display: "block", marginBottom: 6 }}>Photo du produit</label>
-                      <ImageUploader
-                        currentImage={productForm.image}
-                        onImageChange={url => setProductForm(p => ({ ...p, image: url }))}
-                      />
-                    </div>
+  <label style={{ fontSize: 13, fontWeight: 500, display: "block", marginBottom: 6 }}>Photos du produit (3 photos)</label>
+  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <div>
+      <div style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>Photo principale</div>
+      <ImageUploader currentImage={productForm.image} onImageChange={url => setProductForm(p => ({ ...p, image: url, images: [url, ...(p.images?.slice(1) || [])] }))} />
+    </div>
+    <div>
+      <div style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>Photo 2</div>
+      <ImageUploader currentImage={productForm.images?.[1] || ""} onImageChange={url => setProductForm(p => ({ ...p, images: [p.image || url, url, p.images?.[2] || url] }))} />
+    </div>
+    <div>
+      <div style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>Photo 3</div>
+      <ImageUploader currentImage={productForm.images?.[2] || ""} onImageChange={url => setProductForm(p => ({ ...p, images: [p.image || url, p.images?.[1] || url, url] }))} />
+    </div>
+  </div>
+</div>
                   </div>
 
                   {/* Colonne droite */}
