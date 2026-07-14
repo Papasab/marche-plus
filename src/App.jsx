@@ -1046,34 +1046,59 @@ function HomePage({ products, onSelect, onAdd, isFavorite, onToggleFav, setPage 
 
 // ─── Carte Produit (réutilisable) ─────────────────────────────────
 function ProductCard({ p, onSelect, onAdd, isFavorite, onToggleFav }) {
+  const [hovered, setHovered] = useState(false);
   return (
-    <div style={{ background: "#fff", borderRadius: 16, border: "0.5px solid #ebebeb", overflow: "hidden", cursor: "pointer", transition: "transform .2s, box-shadow .2s" }}
-      onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 12px 32px rgba(107,33,168,0.12)"; }}
-      onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}
+    <div
+      style={{ background: "#fff", borderRadius: 20, border: "1px solid #f0ecff", overflow: "hidden", cursor: "pointer", transition: "all .3s ease", transform: hovered ? "translateY(-6px)" : "none", boxShadow: hovered ? "0 20px 40px rgba(107,33,168,0.15)" : "0 2px 8px rgba(0,0,0,0.04)" }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       onClick={() => onSelect(p)}>
-      <div style={{ position: "relative" }}>
-        <div style={{ height: 180, overflow: "hidden", background: "#FAF8FF" }}>
-          <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform .4s" }}
-            onMouseEnter={e => e.target.style.transform = "scale(1.08)"}
-            onMouseLeave={e => e.target.style.transform = "scale(1)"}
+      <div style={{ position: "relative", overflow: "hidden" }}>
+        <div style={{ height: 200, background: "#FAF8FF", overflow: "hidden" }}>
+          <img src={p.image} alt={p.name}
+            style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform .5s ease", transform: hovered ? "scale(1.08)" : "scale(1)" }}
             onError={e => e.target.style.display = "none"} />
         </div>
-        <button onClick={e => { e.stopPropagation(); onToggleFav(p); }} style={{ position: "absolute", top: 10, right: 10, width: 34, height: 34, borderRadius: "50%", background: "#fff", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+        {/* Badge favori */}
+        <button onClick={e => { e.stopPropagation(); onToggleFav(p); }}
+          style={{ position: "absolute", top: 12, right: 12, width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.95)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, boxShadow: "0 2px 10px rgba(0,0,0,0.1)", transition: "transform .2s", transform: isFavorite(p.id) ? "scale(1.2)" : "scale(1)" }}>
           {isFavorite(p.id) ? "❤️" : "🤍"}
         </button>
-        {p.stock < 10 && <div style={{ position: "absolute", top: 10, left: 10, background: "#fce8e8", color: "#c0392b", fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 6 }}>Stock limité</div>}
+        {/* Badge stock limité */}
+        {p.stock < 10 && (
+          <div style={{ position: "absolute", top: 12, left: 12, background: "linear-gradient(135deg, #e53e3e, #c0392b)", color: "#fff", fontSize: 10, fontWeight: 700, padding: "4px 10px", borderRadius: 99, letterSpacing: ".05em" }}>
+            🔥 STOCK LIMITÉ
+          </div>
+        )}
+        {/* Badge nouveau */}
+        {p.id <= 3 && p.stock >= 10 && (
+          <div style={{ position: "absolute", top: 12, left: 12, background: "linear-gradient(135deg, #6B21A8, #D4AF37)", color: "#fff", fontSize: 10, fontWeight: 700, padding: "4px 10px", borderRadius: 99 }}>
+            ✨ NOUVEAU
+          </div>
+        )}
       </div>
-      <div style={{ padding: "14px 16px" }}>
-        <div style={{ fontSize: 11, color: "#6B21A8", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 4 }}>{p.category}</div>
-        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6, lineHeight: 1.3, color: "#1a1a1a" }}>{p.name}</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 10 }}>
-          <span style={{ fontSize: 12, color: "#D4AF37" }}>{"★".repeat(Math.floor(p.rating))}</span>
-          <span style={{ fontSize: 11, color: "#aaa" }}>{p.rating}</span>
+
+      <div style={{ padding: "16px" }}>
+        <div style={{ fontSize: 10, color: "#6B21A8", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 6 }}>{p.category}</div>
+        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8, lineHeight: 1.4, color: "#1a1a1a" }}>{p.name}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
+          <div style={{ display: "flex", gap: 1 }}>
+            {[1,2,3,4,5].map(n => (
+              <span key={n} style={{ fontSize: 11, color: n <= Math.floor(p.rating) ? "#D4AF37" : "#e0e0e0" }}>★</span>
+            ))}
+          </div>
+          <span style={{ fontSize: 11, color: "#aaa" }}>{p.rating} ({p.reviewsList?.length || 0})</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontWeight: 900, fontSize: 16, color: "#D4AF37" }}>{fmt(p.price)}</span>
-          <button onClick={e => { e.stopPropagation(); onAdd(p); }} style={{ background: "#6B21A8", color: "#fff", border: "none", padding: "8px 14px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
-            + Ajouter
+          <div>
+            <div style={{ fontWeight: 900, fontSize: 18, color: "#D4AF37", lineHeight: 1 }}>{fmt(p.price)}</div>
+            <div style={{ fontSize: 10, color: p.stock < 10 ? "#e53e3e" : "#aaa", marginTop: 3 }}>
+              {p.stock < 10 ? `⚠ ${p.stock} restants` : `✓ ${p.stock} dispo`}
+            </div>
+          </div>
+          <button onClick={e => { e.stopPropagation(); onAdd(p); }}
+            style={{ background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "10px 16px", borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all .2s", boxShadow: "0 4px 12px rgba(107,33,168,0.3)" }}>
+            🛒 Ajouter
           </button>
         </div>
       </div>
