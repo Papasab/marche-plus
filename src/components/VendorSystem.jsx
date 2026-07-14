@@ -181,7 +181,30 @@ export function VendorDashboard({ supabase, vendor, onAddProduct, onBack }) {
                 </select>
                 <input type="number" placeholder="Prix (FCFA)" value={newProduct.price} onChange={e => setNewProduct(p => ({ ...p, price: e.target.value }))} style={{ padding: "10px 14px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 14 }} />
                 <input type="number" placeholder="Stock" value={newProduct.stock} onChange={e => setNewProduct(p => ({ ...p, stock: e.target.value }))} style={{ padding: "10px 14px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 14 }} />
-                <input placeholder="Chemin image (/images/xxx.jpg)" value={newProduct.image} onChange={e => setNewProduct(p => ({ ...p, image: e.target.value }))} style={{ padding: "10px 14px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 14, gridColumn: "1 / -1" }} />
+                <div style={{ gridColumn: "1 / -1" }}>
+  <label style={{ fontSize: 13, fontWeight: 500, display: "block", marginBottom: 6 }}>Photo du produit</label>
+  <div style={{ border: "2px dashed #e0e0e0", borderRadius: 12, padding: 16, textAlign: "center", cursor: "pointer", background: "#faf8ff" }}
+    onClick={() => document.getElementById("vendor-img-upload").click()}>
+    {newProduct.image ? (
+      <img src={newProduct.image} alt="aperçu" style={{ height: 120, objectFit: "cover", borderRadius: 8 }} />
+    ) : (
+      <div>
+        <div style={{ fontSize: 32, marginBottom: 8 }}>📷</div>
+        <div style={{ fontSize: 14, color: "#888" }}>Cliquez pour uploader une photo</div>
+      </div>
+    )}
+  </div>
+  <input id="vendor-img-upload" type="file" accept="image/*" style={{ display: "none" }} onChange={async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const filename = `produits/${Date.now()}-${file.name}`;
+    const { error } = await supabase.storage.from("image").upload(filename, file, { upsert: true });
+    if (!error) {
+      const { data } = supabase.storage.from("image").getPublicUrl(filename);
+      setNewProduct(p => ({ ...p, image: data.publicUrl }));
+    }
+  }} />
+</div>
                 <textarea placeholder="Description" value={newProduct.description} onChange={e => setNewProduct(p => ({ ...p, description: e.target.value }))} rows={2} style={{ padding: "10px 14px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 14, gridColumn: "1 / -1", fontFamily: "inherit" }} />
               </div>
               <button onClick={addProduct} style={{ background: "#0a7c45", color: "#fff", border: "none", padding: "10px 22px", borderRadius: 10, fontWeight: 600, fontSize: 13 }}>✓ Publier le produit</button>
