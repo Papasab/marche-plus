@@ -247,7 +247,7 @@ function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount,
           display: "flex", flexDirection: "column", gap: 6,
           boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
         }}>
-          {[{ key: "home", label: "🏠 Accueil" }, { key: "shop", label: "🏪 Boutique" }, { key: "orders", label: "📦 Commandes" }, { key: "tracking", label: "📍 Suivi commande" }, { key: "admin", label: "⚙️ Admin", adminOnly: true }].filter(item => !item.adminOnly || user?.email === ADMIN_EMAIL).map(({ key, label }) => (
+          {[{ key: "home", label: "🏠 Accueil" }, { key: "shop", label: "🛍 Boutique" }, { key: "orders", label: "📦 Commandes" }, { key: "tracking", label: "📍 Suivi" }, { key: "vendor", label: "🏪 Vendre", vendorOnly: true }, { key: "admin", label: "⚙️ Admin", adminOnly: true }].filter(item => (!item.adminOnly || user?.email === ADMIN_EMAIL)).map(({ key, label }) => (
             <button key={key} onClick={() => { setPage(key); setMenuOpen(false); }} style={{
               background: page === key ? "#1a1a1a" : "#f4f4f4",
               color: page === key ? "#fff" : "#333",
@@ -2002,9 +2002,9 @@ Merci pour votre commande! 🙏`;
           setPage(p);
         }
       }} cartCount={cartCount} user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} onProfile={() => { setShowProfile(true); setSelectedProduct(null); setVendorPage(null); }} favCount={favorites.length} points={points} lang={lang} setLang={setLang} onVendor={() => setVendorPage(myVendor ? "dashboard" : "register")} hasVendor={!!myVendor} />
-      {page === "shop"    && !selectedProduct && !showProfile && <ShopPage products={products} onAdd={addToCart} onSelect={setSelectedProduct} favorites={favorites} onToggleFav={toggleFavorite} isFavorite={isFavorite} />}
-      {page === "shop"    && selectedProduct  && !showProfile && <ProductDetailPage product={selectedProduct} onAdd={(p) => { addToCart(p); }} onBack={() => setSelectedProduct(null)} isFavorite={isFavorite} onToggleFav={toggleFavorite} />}
-      {showProfile && !showParrainage && <ProfilePage user={user} orders={orders} favorites={favorites} onClose={() => setShowProfile(false)} onSelect={(p) => { setShowProfile(false); setPage("shop"); setSelectedProduct(p); }} setShowParrainage={setShowParrainage} supabase={supabase} />}
+      {page === "shop"    && !selectedProduct && !showProfile && !vendorPage && <ShopPage products={products} onAdd={addToCart} onSelect={setSelectedProduct} favorites={favorites} onToggleFav={toggleFavorite} isFavorite={isFavorite} />}
+       {page === "shop"    && selectedProduct  && !showProfile && !vendorPage && <ProductDetailPage product={selectedProduct} onAdd={(p) => { addToCart(p); }} onBack={() => setSelectedProduct(null)} isFavorite={isFavorite} onToggleFav={toggleFavorite} />}
+      {showProfile && !showParrainage && !vendorPage && <ProfilePage user={user} orders={orders} favorites={favorites} onClose={() => setShowProfile(false)} onSelect={(p) => { setShowProfile(false); setPage("shop"); setSelectedProduct(p); }} setShowParrainage={setShowParrainage} supabase={supabase} />}
       {vendorPage === "register" && <VendorRegister supabase={supabase} user={user} onDone={(v) => { setMyVendor(v); setVendorPage("dashboard"); }} onBack={() => setVendorPage(null)} />}
       {vendorPage === "dashboard" && myVendor && <VendorDashboard supabase={supabase} vendor={myVendor} onBack={() => setVendorPage(null)} />}
       {vendorPage && typeof vendorPage === "object" && vendorPage.slug && <VendorShopPage supabase={supabase} slug={vendorPage.slug} onAdd={addToCart} onBack={() => { setVendorPage(null); window.history.replaceState({}, "", "/"); }} />}
