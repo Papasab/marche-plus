@@ -288,14 +288,25 @@ export function VendorShopPage({ supabase, slug, onAdd, onBack }) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px,1fr))", gap: 16 }}>
         {products.map(p => (
           <div key={p.id} style={{ background: "#fff", borderRadius: 14, border: "1px solid #ebebeb", overflow: "hidden" }}>
-            <div style={{ height: 140, background: "#f8f7f4", overflow: "hidden" }}>
-              <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => e.target.style.display = "none"} />
+            <div style={{ height: 180, background: "#FAF8FF", overflow: "hidden" }}>
+              {p.image ? (
+                <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48 }}>🛍</div>
+              )}
             </div>
             <div style={{ padding: "14px 16px" }}>
-              <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 6 }}>{p.name}</div>
+              <div style={{ fontSize: 11, color: "#6B21A8", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>{p.category}</div>
+              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 8 }}>{p.name}</div>
+              {p.description && <div style={{ fontSize: 12, color: "#888", marginBottom: 10 }}>{p.description}</div>}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontWeight: 800, fontSize: 15 }}>{fmt(p.price)}</span>
-                <button onClick={() => onAdd({ ...p, vendeur_id: vendor.id })} style={{ background: "#1a1a1a", color: "#fff", border: "none", padding: "7px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600 }}>+ Ajouter</button>
+                <span style={{ fontWeight: 900, fontSize: 16, color: "#D4AF37" }}>{fmt(p.price)}</span>
+                <button onClick={() => onAdd({ ...p, vendeur_id: vendor.id })} style={{ background: "#6B21A8", color: "#fff", border: "none", padding: "9px 18px", borderRadius: 99, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                  🛒 Commander
+                </button>
+              </div>
+              <div style={{ fontSize: 11, color: p.stock < 10 ? "#e53e3e" : "#aaa", marginTop: 6 }}>
+                {p.stock < 10 ? `⚠ Plus que ${p.stock} en stock` : `✓ ${p.stock} disponibles`}
               </div>
             </div>
           </div>
