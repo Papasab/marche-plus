@@ -184,7 +184,7 @@ export function VendorDashboard({ supabase, vendor, onAddProduct, onBack }) {
                 <div style={{ gridColumn: "1 / -1" }}>
   <label style={{ fontSize: 13, fontWeight: 500, display: "block", marginBottom: 6 }}>Photo du produit</label>
   <div style={{ border: "2px dashed #e0e0e0", borderRadius: 12, padding: 16, textAlign: "center", cursor: "pointer", background: "#faf8ff" }}
-    onClick={() => document.getElementById("vendor-img-upload").click()}>
+   im onClick={() => document.getElementById("vendor-img-upload").click()}>
     {newProduct.image ? (
       <img src={newProduct.image} alt="aperçu" style={{ height: 120, objectFit: "cover", borderRadius: 8 }} />
     ) : (
