@@ -247,8 +247,8 @@ function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount,
           display: "flex", flexDirection: "column", gap: 6,
           boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
         }}>
-          {[{ key: "home", label: "🏠 Accueil" }, { key: "shop", label: "🛍 Boutique" }, { key: "orders", label: "📦 Commandes" }, { key: "tracking", label: "📍 Suivi" }, { key: "vendor", label: "🏪 Vendre", vendorOnly: true }, { key: "admin", label: "⚙️ Admin", adminOnly: true }].filter(item => (!item.adminOnly || user?.email === ADMIN_EMAIL)).map(({ key, label }) => (
-            <button key={key} onClick={() => { setPage(key); setMenuOpen(false); }} style={{
+          {[{ key: "home", label: "🏠 Accueil" }, { key: "shop", label: "🛍 Boutique" }, { key: "orders", label: "📦 Commandes" }, { key: "tracking", label: "📍 Suivi" }, { key: "vendor", label: "🏪 Vendre", vendorOnly: true }, { key: "admin", label: "⚙️ Admin", adminOnly: true }].filter(item => (!item.adminOnly || user?.email === ADMIN_EMAIL)).map(({ key, label, vendorOnly }) => (
+            <button key={key} onClick={() => { if (vendorOnly) { onVendor(); setMenuOpen(false); } else { setPage(key); setMenuOpen(false); } }} style={{
               background: page === key ? "#1a1a1a" : "#f4f4f4",
               color: page === key ? "#fff" : "#333",
               border: "none", padding: "12px 16px", borderRadius: 10,
