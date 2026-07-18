@@ -507,6 +507,34 @@ function ProductDetailPage({ product, onAdd, onBack, isFavorite, onToggleFav, us
       </div>
 
       {/* Avis clients */}
+     {product.video && (
+        <div style={{ marginTop: 32, marginBottom: 32 }}>
+          <h2 style={{ fontWeight: 700, fontSize: 18, marginBottom: 16 }}>🎥 Vidéo du produit</h2>
+          <div style={{ borderRadius: 16, overflow: "hidden", position: "relative", paddingBottom: "56.25%", height: 0 }}>
+            <iframe
+              src={product.video.includes("youtube") ? product.video.replace("watch?v=", "embed/") : product.video.includes("youtu.be") ? product.video.replace("youtu.be/", "www.youtube.com/embed/") : product.video}
+              style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none", borderRadius: 16 }}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
+
+     {product.video && (
+        <div style={{ marginTop: 32, marginBottom: 32 }}>
+          <h2 style={{ fontWeight: 700, fontSize: 18, marginBottom: 16 }}>🎥 Vidéo du produit</h2>
+          <div style={{ borderRadius: 16, overflow: "hidden", position: "relative", paddingBottom: "56.25%", height: 0 }}>
+            <iframe
+              src={product.video.includes("youtube") ? product.video.replace("watch?v=", "embed/") : product.video.includes("youtu.be") ? product.video.replace("youtu.be/", "www.youtube.com/embed/") : product.video}
+              style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none", borderRadius: 16 }}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
+
       {product.reviewsList?.length > 0 && (
         <div style={{ marginTop: 40 }}>
           <h2 style={{ fontWeight: 700, fontSize: 18, marginBottom: 16 }}>⭐ Avis clients ({product.reviewsList.length})</h2>
