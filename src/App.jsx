@@ -377,7 +377,9 @@ function ProductDetailPage({ product, onAdd, onBack, isFavorite, onToggleFav, us
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || null);
   const [qty, setQty] = useState(1);
 
-  const images = product.images || [product.image];
+  const images = product.images 
+    ? (Array.isArray(product.images) ? product.images : product.images.split(",").filter(Boolean))
+    : [product.image];
 
   return (
     <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 16px" }}>
