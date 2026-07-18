@@ -280,7 +280,7 @@ function AdminDashboard({ onLogout }) {
 
   const openAddProduct = () => {
     setEditProduct(null);
-    setProductForm({ name: "", category: "Mode", price: "", stock: "", image: "", description: "", sizes: "", colors: "", img2: "", img3: "" });
+    setProductForm({ name: "", category: "Mode", price: "", stock: "", image: "", description: "", sizes: "", colors: "", img2: "", img3: "", video: "" });
     setShowProductForm(true);
   };
 
@@ -291,6 +291,7 @@ function AdminDashboard({ onLogout }) {
       image: p.image || "", description: p.description || "",
       img2: p.images?.split(",")?.[1] || "",
       img3: p.images?.split(",")?.[2] || "",
+      video: p.video || "",
       sizes: Array.isArray(p.sizes) ? p.sizes.join(",") : (p.sizes || ""),
       colors: Array.isArray(p.colors) ? p.colors.join(",") : (p.colors || ""),
     });
@@ -305,7 +306,7 @@ function AdminDashboard({ onLogout }) {
       price: parseInt(productForm.price) || 0, stock: parseInt(productForm.stock) || 0,
       image: productForm.image, images: Array.isArray(productForm.images) ? productForm.images.filter(Boolean).join(",") : productForm.image,
       description: productForm.description,
-      sizes: productForm.sizes, colors: productForm.colors,
+      sizes: productForm.sizes, colors: productForm.colors, video: productForm.video || "", video: productForm.video || "", video: productForm.video || "", video: productForm.video || "",
       rating: editProduct?.rating || 5, reviews: editProduct?.reviews || 0,
     };
     if (editProduct) {
@@ -606,6 +607,10 @@ Merci de votre confiance ! 🛍
                   </div>
 
                   {/* Ligne complète */}
+                  <div style={{ gridColumn: "1 / -1", marginBottom: 14 }}>
+                    <label style={{ fontSize: 13, fontWeight: 500, display: "block", marginBottom: 6 }}>🎥 URL Vidéo <span style={{ color: "#aaa", fontWeight: 400 }}>(YouTube, TikTok...)</span></label>
+                    <input placeholder="Ex: https://www.youtube.com/watch?v=..." value={productForm.video || ""} onChange={e => setProductForm(p => ({ ...p, video: e.target.value }))} style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 14 }} />
+                  </div>
                   <div style={{ gridColumn: "1 / -1" }}>
                     <label style={{ fontSize: 13, fontWeight: 500, display: "block", marginBottom: 6 }}>Description</label>
                     <textarea placeholder="Description du produit..." value={productForm.description} onChange={e => setProductForm(p => ({ ...p, description: e.target.value }))} rows={3} style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 14, fontFamily: "inherit", resize: "vertical" }} />
