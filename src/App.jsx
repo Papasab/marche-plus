@@ -2039,7 +2039,6 @@ if (vendeurId) {
       paiement:         methodLabel,
       user_id:          user?.id,
       produits:         JSON.stringify(cart.map(i => ({ nom: i.name, qty: i.qty, prix: i.price }))),
-      user_id:          user?.id,
     }).then(({ error }) => {
       if (error) console.error("Supabase error:", error);
     });
