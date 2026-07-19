@@ -21,13 +21,17 @@ function ImageUploader({ currentImage, onImageChange, supabase, label = "Photo" 
     reader.readAsDataURL(file);
     setUploading(true);
     const filename = `produits/${Date.now()}-${file.name.replace(/\s/g, "-")}`;
-    const { error } = await supabase.storage.from("image").upload(filename, file, { upsert: true });
-    if (!error) {
-      const { data } = supabase.storage.from("image").getPublicUrl(filename);
-      setPreview(data.publicUrl);
-      onImageChange(data.publicUrl);
+    const { data: uploadData, error } = await supabase.storage.from("images").upload(filename, file, { upsert: true });
+    if (!error && uploadData) {
+      const { data: urlData } = supabase.storage.from("images").getPublicUrl(filename);
+      setPreview(urlData.publicUrl);
+      onImageChange(urlData.publicUrl);
     } else {
-      onImageChange(`/images/${file.name}`);
+      console.error("Upload error:", error);
+      // Utiliser base64 comme fallback
+      const reader2 = new FileReader();
+      reader2.onload = ev => { onImageChange(ev.target.result); };
+      reader2.readAsDataURL(file);
     }
     setUploading(false);
   };
