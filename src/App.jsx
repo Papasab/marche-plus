@@ -2000,7 +2000,31 @@ ${lignes}
 
 Merci pour votre commande! 🙏`;
 
-    window.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+    // Détecter si commande contient des produits vendeur
+const vendeurItems = cart.filter(i => i.vendeur_id);
+const vendeurId = vendeurItems.length > 0 ? vendeurItems[0].vendeur_id : null;
+
+if (vendeurId) {
+  // Chercher le WhatsApp du vendeur
+  supabase.from("vendeurs").select("whatsapp, nom_boutique").eq("id", vendeurId).single().then(({ data: v }) => {
+    const whatsapp = v?.whatsapp || WHATSAPP_NUMBER;
+    window.location.href = `https://wa.me/${whatsapp}?text=${encodeURIComponent(msg)}`;
+  });
+} else {
+  // Détecter si commande contient des produits vendeur
+const vendeurItems = cart.filter(i => i.vendeur_id);
+const vendeurId = vendeurItems.length > 0 ? vendeurItems[0].vendeur_id : null;
+
+if (vendeurId) {
+  // Chercher le WhatsApp du vendeur
+  supabase.from("vendeurs").select("whatsapp, nom_boutique").eq("id", vendeurId).single().then(({ data: v }) => {
+    const whatsapp = v?.whatsapp || WHATSAPP_NUMBER;
+    window.location.href = `https://wa.me/${whatsapp}?text=${encodeURIComponent(msg)}`;
+  });
+} else {
+  window.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+}
+}
 
     // ✅ Sauvegarder dans Supabase après
     supabase.from("commandes").insert({
