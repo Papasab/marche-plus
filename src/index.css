@@ -45,3 +45,46 @@ input:focus, select:focus { outline: none; border-color: #1a1a1a !important; }
   /* Boutons panier */
   .cart-actions { flex-direction: column !important; }
 }
+/* ── Design mobile premium ─────────────────────── */
+@media (max-width: 768px) {
+  .product-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .home-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .home-cats {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+  }
+}
+
+/* Barre de recherche améliorée */
+.search-bar {
+  background: #fff;
+  border: 1.5px solid #f0ecff;
+  border-radius: 99px !important;
+  padding: 12px 20px !important;
+  font-size: 14px;
+  box-shadow: 0 2px 12px rgba(107,33,168,0.08);
+}
+
+/* Catégories pill style */
+.cat-btn {
+  border-radius: 99px !important;
+  padding: 8px 18px !important;
+  font-weight: 600 !important;
+  transition: all .2s !important;
+}
+@media (max-width: 768px) {
+  .product-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .home-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
