@@ -16,24 +16,25 @@ function ImageUploader({ currentImage, onImageChange, supabase, label = "Photo" 
   const handleFile = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => setPreview(ev.target.result);
-    reader.readAsDataURL(file);
     setUploading(true);
-    const filename = `produits/${Date.now()}-${file.name.replace(/\s/g, "-")}`;
-    const { data: uploadData, error } = await supabase.storage.from("images").upload(filename, file, { upsert: true });
-    if (!error && uploadData) {
-      const { data: urlData } = supabase.storage.from("images").getPublicUrl(filename);
-      setPreview(urlData.publicUrl);
-      onImageChange(urlData.publicUrl);
-    } else {
-      console.error("Upload error:", error);
-      // Utiliser base64 comme fallback
-      const reader2 = new FileReader();
-      reader2.onload = ev => { onImageChange(ev.target.result); };
-      reader2.readAsDataURL(file);
-    }
-    setUploading(false);
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const base64 = ev.target.result;
+      setPreview(base64);
+      // Essayer d'uploader sur Supabase
+      const filename = `produits/${Date.now()}-${file.name.replace(/\s/g, "-")}`;
+      const { data: uploadData, error } = await supabase.storage.from("images").upload(filename, file, { upsert: true });
+      if (!error && uploadData) {
+        const { data: urlData } = supabase.storage.from("images").getPublicUrl(filename);
+        setPreview(urlData.publicUrl);
+        onImageChange(urlData.publicUrl);
+      } else {
+        // Fallback: utiliser base64
+        onImageChange(base64);
+      }
+      setUploading(false);
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
