@@ -461,6 +461,7 @@ export function VendorShopPage({ supabase, slug, onAdd, onBack }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -475,6 +476,40 @@ export function VendorShopPage({ supabase, slug, onAdd, onBack }) {
   }, [slug]);
 
   if (loading) return <div style={{ textAlign: "center", padding: 80, color: "#aaa" }}>⏳ Chargement...</div>;
+  if (selectedProduct) return (
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 16px" }}>
+      <button onClick={() => setSelectedProduct(null)} style={{ background: "none", border: "none", color: "#6B21A8", fontSize: 14, cursor: "pointer", marginBottom: 20 }}>← Retour à la boutique</button>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+        <div>
+          <div style={{ borderRadius: 16, overflow: "hidden", height: 300, background: "#FAF8FF" }}>
+            <img src={selectedProduct.image} alt={selectedProduct.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => e.target.style.display = "none"} />
+          </div>
+          {selectedProduct.images && (
+            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+              {selectedProduct.images.split(",").filter(Boolean).map((img, i) => (
+                <div key={i} style={{ width: 70, height: 70, borderRadius: 10, overflow: "hidden", cursor: "pointer", border: "2px solid #f0ecff" }}>
+                  <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div>
+          <div style={{ fontSize: 11, color: "#6B21A8", fontWeight: 700, textTransform: "uppercase", marginBottom: 8 }}>{selectedProduct.category}</div>
+          <h1 style={{ fontWeight: 800, fontSize: 22, marginBottom: 10 }}>{selectedProduct.name}</h1>
+          <div style={{ fontWeight: 900, fontSize: 28, color: "#D4AF37", marginBottom: 16 }}>{fmt(selectedProduct.price)}</div>
+          {selectedProduct.description && <p style={{ fontSize: 14, color: "#555", lineHeight: 1.7, marginBottom: 20 }}>{selectedProduct.description}</p>}
+          <div style={{ fontSize: 12, color: selectedProduct.stock < 10 ? "#e53e3e" : "#aaa", marginBottom: 20 }}>
+            {selectedProduct.stock < 10 ? `⚠ Plus que ${selectedProduct.stock} en stock` : `✓ ${selectedProduct.stock} disponibles`}
+          </div>
+          <button onClick={() => { onAdd({ ...selectedProduct, vendeur_id: vendor.id }); setSelectedProduct(null); }}
+            style={{ width: "100%", background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "14px", borderRadius: 12, fontWeight: 700, fontSize: 16, cursor: "pointer", boxShadow: "0 8px 24px rgba(107,33,168,0.3)" }}>
+            🛒 Ajouter au panier
+          </button>
+        </div>
+      </div>
+    </div>
+  );
   if (!vendor) return <div style={{ textAlign: "center", padding: 80, color: "#aaa" }}>Boutique introuvable.</div>;
 
   const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
@@ -514,6 +549,7 @@ export function VendorShopPage({ supabase, slug, onAdd, onBack }) {
             {filtered.map(p => (
               <div key={p.id} style={{ background: "#fff", borderRadius: 20, border: "1px solid #f0ecff", overflow: "hidden", boxShadow: "0 2px 8px rgba(107,33,168,0.06)", transition: "all .3s" }}
                 onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 12px 30px rgba(107,33,168,0.12)"; }}
+              onClick={() => setSelectedProduct(p)}
                 onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(107,33,168,0.06)"; }}>
                 <div style={{ height: 200, background: "#FAF8FF", overflow: "hidden", position: "relative" }}>
                   {p.image ? (
