@@ -225,7 +225,19 @@ export function VendorDashboard({ supabase, vendor, onBack }) {
   return (
     <div style={{ minHeight: "100vh", background: "#FAF8FF" }}>
       <style>{`
-        @media(max-width:600px){ .vendor-stats{ grid-template-columns: 1fr 1fr !important; } .vendor-prod-grid{ grid-template-columns: 1fr !important; } }
+        @media(max-width:768px){
+          .vendor-stats{ grid-template-columns: 1fr 1fr !important; }
+          .vendor-prod-grid{ grid-template-columns: 1fr !important; }
+          .vendor-header { padding: 16px !important; }
+          .vendor-tabs button { padding: 10px 12px !important; font-size: 13px !important; }
+          .vendor-form-grid { grid-template-columns: 1fr !important; }
+          .vendor-photos { grid-template-columns: 1fr 1fr 1fr !important; }
+          .vendor-detail-grid { grid-template-columns: 1fr !important; }
+        }
+        @media(max-width:480px){
+          .vendor-stats{ grid-template-columns: 1fr !important; }
+          .vendor-photos { grid-template-columns: 1fr 1fr !important; }
+        }
       `}</style>
 
       {/* Header */}
@@ -333,13 +345,15 @@ export function VendorDashboard({ supabase, vendor, onBack }) {
                 </div>
 
                 {/* Photos */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20
+                className: "vendor-photos", }}>
                   <ImageUploader currentImage={newProduct.image} onImageChange={url => setNewProduct(p => ({ ...p, image: url }))} supabase={supabase} label="📷 Photo principale *" />
                   <ImageUploader currentImage={newProduct.img2} onImageChange={url => setNewProduct(p => ({ ...p, img2: url }))} supabase={supabase} label="📷 Photo 2" />
                   <ImageUploader currentImage={newProduct.img3} onImageChange={url => setNewProduct(p => ({ ...p, img3: url }))} supabase={supabase} label="📷 Photo 3" />
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14
+                className: "vendor-form-grid", }}>
                   {[
                     { label: "Nom du produit *", key: "name", placeholder: "Ex: Robe africaine", type: "text" },
                     { label: "Prix (FCFA) *", key: "price", placeholder: "Ex: 15000", type: "number" },
@@ -479,7 +493,8 @@ export function VendorShopPage({ supabase, slug, onAdd, onBack }) {
   if (selectedProduct) return (
     <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 16px" }}>
       <button onClick={() => setSelectedProduct(null)} style={{ background: "none", border: "none", color: "#6B21A8", fontSize: 14, cursor: "pointer", marginBottom: 20 }}>← Retour à la boutique</button>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24
+          className: "vendor-detail-grid", }}>
         <div>
           <div style={{ borderRadius: 16, overflow: "hidden", height: 300, background: "#FAF8FF" }}>
             <img src={selectedProduct.image} alt={selectedProduct.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => e.target.style.display = "none"} />
