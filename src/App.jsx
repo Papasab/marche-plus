@@ -958,7 +958,7 @@ Code : *${myParrainage?.code}*`;
 
 
 // ─── Page d'accueil ───────────────────────────────────────────────
-function HomePage({ products, onSelect, onAdd, isFavorite, onToggleFav, setPage }) {
+(function HomePage({ products, onSelect, onAdd, isFavorite, onToggleFav, setPage }) {
   const [currentBanner, setCurrentBanner] = useState(0);
   const featured = products.slice(0, 4);
   const newArrivals = products.slice(4, 8);
@@ -1147,7 +1147,7 @@ function ShopPage({ products, onAdd, onSelect, favorites, onToggleFav, isFavorit
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 20px" }}>
       <div style={{ display: "flex", gap: 10, marginBottom: 24, flexWrap: "wrap", alignItems: "center" }}>
         <input
-          placeholder="Rechercher un produit…" value={search}
+          placeholder="🔍 Rechercher un produit..." value={search}
           onChange={e => setSearch(e.target.value)}
           style={{ flex: 1, minWidth: 200, padding: "10px 16px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 14, background: "#fff" }}
         />
@@ -1813,7 +1813,7 @@ function AdminLoginModal({ onSuccess, onClose }) {
 }
 
 export default function App() {
-  const [page,     setPage]     = useState("shop");
+  const [page,     setPage]     = useState("home");
   const [cart,     setCart]     = useState([]);
   const [orders,   setOrders]   = useState([]);
   const [products, setProducts] = useState(INITIAL_PRODUCTS);
@@ -2080,6 +2080,7 @@ if (vendeurId) {
           setPage(p);
         }
       }} cartCount={cartCount} user={user} onLogout={() => { supabase.auth.signOut(); setUser(null); }} onProfile={() => { setShowProfile(true); setSelectedProduct(null); setVendorPage(null); }} favCount={favorites.length} points={points} lang={lang} setLang={setLang} onVendor={() => setVendorPage(myVendor ? "dashboard" : "register")} hasVendor={!!myVendor} />
+      {page === "home" && !showProfile && !vendorPage && !selectedProduct && <HomePage products={products} onSelect={setSelectedProduct} onAdd={addToCart} isFavorite={isFavorite} onToggleFav={toggleFavorite} setPage={setPage} />}
       {page === "shop"    && !selectedProduct && !showProfile && !vendorPage && <ShopPage products={products} onAdd={addToCart} onSelect={setSelectedProduct} favorites={favorites} onToggleFav={toggleFavorite} isFavorite={isFavorite} />}
        {page === "shop"    && selectedProduct  && !showProfile && !vendorPage && <ProductDetailPage product={selectedProduct} onAdd={(p) => { addToCart(p); }} onBack={() => setSelectedProduct(null)} isFavorite={isFavorite} onToggleFav={toggleFavorite} />}
       {showProfile && !showParrainage && !vendorPage && <ProfilePage user={user} orders={orders} favorites={favorites} onClose={() => setShowProfile(false)} onSelect={(p) => { setShowProfile(false); setPage("shop"); setSelectedProduct(p); }} setShowParrainage={setShowParrainage} supabase={supabase} />}
