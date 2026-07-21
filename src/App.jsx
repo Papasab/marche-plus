@@ -1268,17 +1268,10 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ name: "", phone: "", address: "", method: "mobile" });
   const [errors, setErrors] = useState({});
-  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
-
-  const validate = () => {
-    const e = {};
-    if (!form.name.trim())    e.name    = "Champ requis";
-    if (!form.phone.trim())   e.phone   = "Champ requis";
-    if (!form.address.trim()) e.address = "Champ requis";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const discount = Math.round(subtotal * promoDiscount / 100);
+  const total = subtotal - discount;
+  const steps = ["Livraison", "Paiement", "Confirmation"];
   const METHODS = [
     { key: "mobile", label: "Mobile Money",            sub: "Orange Money, Moov Money", icon: "📱" },
     { key: "cash",   label: "Paiement à la livraison", sub: "Payez en espèces à réception", icon: "💵" },
