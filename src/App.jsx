@@ -958,7 +958,7 @@ Code : *${myParrainage?.code}*`;
 
 
 // ─── Page d'accueil ───────────────────────────────────────────────
-(function HomePage({ products, onSelect, onAdd, isFavorite, onToggleFav, setPage }) {
+function HomePage({ products, onSelect, onAdd, isFavorite, onToggleFav, setPage }) {
   const [currentBanner, setCurrentBanner] = useState(0);
   const featured = products.slice(0, 4);
   const newArrivals = products.slice(4, 8);
