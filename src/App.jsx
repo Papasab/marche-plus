@@ -190,8 +190,9 @@ function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount,
         gap: 8, height: 60, position: "sticky", top: 0, zIndex: 100,
       }}>
         {/* Logo */}
-        <span onClick={() => { setPage("shop"); setMenuOpen(false); }} style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.5px", marginRight: "auto", cursor: "pointer" }}>
-          🛍 Marché+
+       <div onClick={() => { setPage("home"); setMenuOpen(false); setSelectedProduct(null); setShowProfile(false); setVendorPage(null); }} style={{ marginRight: "auto", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
+          <img src="/logo.png" alt="Marché+" style={{ height: 40, objectFit: "contain" }} />
+        </div>
         </span>
 
         {/* Desktop links */}
