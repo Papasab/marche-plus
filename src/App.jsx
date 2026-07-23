@@ -1299,9 +1299,9 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
       <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 20 }}>Finaliser la commande</h2>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "center", marginBottom: 28 }}>
         <StepDot n={1} />
-        <div style={{ height: 1, width: 60, background: step > 1 ? "#1a1a1a" : "#e0e0e0", margin: "14px 4px 0" }} />
+        <div style={{ height: 3, width: 80, background: step > 1 ? "#6B21A8" : "#e0e0e0", margin: "16px 8px 0", borderRadius: 99, transition: "background .3s" }} />
         <StepDot n={2} />
-        <div style={{ height: 1, width: 60, background: step > 2 ? "#1a1a1a" : "#e0e0e0", margin: "14px 4px 0" }} />
+        <div style={{ height: 3, width: 80, background: step > 2 ? "#6B21A8" : "#e0e0e0", margin: "16px 8px 0", borderRadius: 99, transition: "background .3s" ? "#1a1a1a" : "#e0e0e0", margin: "14px 4px 0" }} />
         <StepDot n={3} />
       </div>
 
