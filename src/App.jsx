@@ -1325,7 +1325,14 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
                 {errors[f.key] && <span style={{ fontSize: 11, color: "#e53e3e", marginTop: 3, display: "block" }}>{errors[f.key]}</span>}
               </div>
             ))}
-            <button onClick={() => { if (validate()) setStep(2); }} style={{ width: "100%", background: "#6B21A8", color: "#fff", border: "none", padding: "14px", borderRadius: 12, fontWeight: 700, fontSize: 15 }}>
+            <button onClick={() => {
+            const e = {};
+            if (!form.name.trim()) e.name = "Champ requis";
+            if (!form.phone.trim()) e.phone = "Champ requis";
+            if (!form.address.trim()) e.address = "Champ requis";
+            setErrors(e);
+            if (Object.keys(e).length === 0) setStep(2);
+          }} style={{ width: "100%", background: "#6B21A8", color: "#fff", border: "none", padding: "14px", borderRadius: 12, fontWeight: 700, fontSize: 15 }}>
               Continuer →
             </button>
           </div>
