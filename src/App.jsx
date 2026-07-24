@@ -124,14 +124,14 @@ function ProductImage({ src, alt, height = 120 }) {
 
   if (error || !src) {
     return (
-      <div style={{ background: "#FAF8FF", height, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48 }}>
+      <div style={{ background: "#F5F0FF", height, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48 }}>
         🛍
       </div>
     );
   }
   return (
     <div
-      style={{ height, overflow: "hidden", background: "#FAF8FF", cursor: "zoom-in" }}
+      style={{ height, overflow: "hidden", background: "#F5F0FF", cursor: "zoom-in" }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onTouchStart={() => setHovered(true)}
@@ -190,9 +190,8 @@ function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount,
         gap: 8, height: 60, position: "sticky", top: 0, zIndex: 100,
       }}>
         {/* Logo */}
-       <div onClick={() => { setPage("home"); setMenuOpen(false); setSelectedProduct(null); setShowProfile(false); setVendorPage(null); }} style={{ marginRight: "auto", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
-          <img src="/logo.png" alt="Marché+" style={{ height: 40, objectFit: "contain" }} />
-        </div>
+        <span onClick={() => { setPage("shop"); setMenuOpen(false); }} style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.5px", marginRight: "auto", cursor: "pointer" }}>
+          🛍 Marché+
         </span>
 
         {/* Desktop links */}
@@ -296,7 +295,7 @@ function AuthPage({ onAuth }) {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#FAF8FF", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+    <div style={{ minHeight: "100vh", background: "#F5F0FF", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <div style={{ background: "#fff", borderRadius: 20, border: "1px solid #ebebeb", padding: "40px 36px", width: "100%", maxWidth: 420, boxShadow: "0 8px 40px rgba(0,0,0,0.08)" }}>
         <div style={{ textAlign: "center", marginBottom: 28 }}>
           <div style={{ fontSize: 48, marginBottom: 8 }}>🛍</div>
@@ -407,7 +406,7 @@ function ProductDetailPage({ product, onAdd, onBack, isFavorite, onToggleFav, us
         {/* Galerie photos */}
         <div>
           {/* Photo principale */}
-          <div style={{ borderRadius: 16, overflow: "hidden", background: "#FAF8FF", marginBottom: 12, height: 340 }}>
+          <div style={{ borderRadius: 16, overflow: "hidden", background: "#F5F0FF", marginBottom: 12, height: 340 }}>
             <img
               src={images[activeImg]} alt={product.name}
               style={{ width: "100%", height: "100%", objectFit: "cover", transition: "opacity 0.2s" }}
@@ -781,7 +780,7 @@ function ReviewSection({ supabase, product, user, orders }) {
       )}
 
       {user && !hasOrdered && (
-        <div style={{ background: "#FAF8FF", borderRadius: 12, padding: "14px 18px", marginBottom: 20, fontSize: 13, color: "#888" }}>
+        <div style={{ background: "#F5F0FF", borderRadius: 12, padding: "14px 18px", marginBottom: 20, fontSize: 13, color: "#888" }}>
           💡 Achetez ce produit pour laisser un avis vérifié.
         </div>
       )}
@@ -927,7 +926,7 @@ Code : *${myParrainage?.code}*`;
           <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #ebebeb", padding: "20px 22px", marginBottom: 16 }}>
             <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 10 }}>🔗 Votre lien de parrainage</div>
             <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-              <div style={{ flex: 1, padding: "10px 14px", background: "#FAF8FF", borderRadius: 10, fontSize: 12, color: "#555", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <div style={{ flex: 1, padding: "10px 14px", background: "#F5F0FF", borderRadius: 10, fontSize: 12, color: "#555", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {shareLink}
               </div>
               <button onClick={copyLink} style={{ background: copied ? "#0a7c45" : "#1a1a1a", color: "#fff", border: "none", padding: "10px 16px", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer", flexShrink: 0 }}>
@@ -1085,7 +1084,7 @@ function ProductCard({ p, onSelect, onAdd, isFavorite, onToggleFav }) {
       onMouseLeave={() => setHovered(false)}
       onClick={() => onSelect(p)}>
       <div style={{ position: "relative", overflow: "hidden" }}>
-        <div style={{ height: 200, background: "#FAF8FF", overflow: "hidden" }}>
+        <div style={{ height: 200, background: "#F5F0FF", overflow: "hidden" }}>
           <img src={p.image} alt={p.name}
             style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform .5s ease", transform: hovered ? "scale(1.08)" : "scale(1)" }}
             onError={e => e.target.style.display = "none"} />
@@ -1380,7 +1379,7 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
               </div>
             )}
 
-            <div style={{ background: "#FAF8FF", borderRadius: 10, padding: "14px 16px", margin: "16px 0" }}>
+            <div style={{ background: "#F5F0FF", borderRadius: 10, padding: "14px 16px", margin: "16px 0" }}>
               <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 10 }}>Récapitulatif</div>
               {cart.map(i => (
                 <div key={i.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4, color: "#555" }}>
@@ -1756,7 +1755,7 @@ function ProfilePage({ user, orders, favorites, onClose, onSelect, setShowParrai
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               {favorites.map(p => (
                 <div key={p.id} onClick={() => onSelect(p)} style={{ background: "#fff", borderRadius: 14, border: "1px solid #ebebeb", overflow: "hidden", cursor: "pointer" }}>
-                  <div style={{ height: 120, overflow: "hidden", background: "#FAF8FF" }}>
+                  <div style={{ height: 120, overflow: "hidden", background: "#F5F0FF" }}>
                     <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => e.target.style.display = "none"} />
                   </div>
                   <div style={{ padding: "10px 12px" }}>
@@ -2060,7 +2059,7 @@ if (vendeurId) {
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
   if (checkingAuth) return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#FAF8FF" }}>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F5F0FF" }}>
       <div style={{ textAlign: "center", color: "#aaa" }}>
         <div style={{ fontSize: 48, marginBottom: 12 }}>🛍</div>
         <div>Chargement...</div>
