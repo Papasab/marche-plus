@@ -2085,7 +2085,7 @@ if (vendeurId) {
        {page === "shop"    && selectedProduct  && !showProfile && !vendorPage && <ProductDetailPage product={selectedProduct} onAdd={(p) => { addToCart(p); }} onBack={() => setSelectedProduct(null)} isFavorite={isFavorite} onToggleFav={toggleFavorite} />}
       {showProfile && !showParrainage && !vendorPage && <ProfilePage user={user} orders={orders} favorites={favorites} onClose={() => setShowProfile(false)} onSelect={(p) => { setShowProfile(false); setPage("shop"); setSelectedProduct(p); }} setShowParrainage={setShowParrainage} supabase={supabase} />}
       {vendorPage === "register" && <VendorRegister supabase={supabase} user={user} onDone={(v) => { setMyVendor(v); setVendorPage("dashboard"); }} onBack={() => setVendorPage(null)} />}
-      {vendorPage === "dashboard" && myVendor && <VendorDashboard supabase={supabase} vendor={myVendor} onBack={() => setVendorPage(null)} />}
+      {vendorPage === "dashboard" && myVendor && <VendorDashboard supabase={supabase} vendor={myVendor} onBack={() => setVendorPage(null)} user={user} />}
       {vendorPage && typeof vendorPage === "object" && vendorPage.slug && <VendorShopPage supabase={supabase} slug={vendorPage.slug} onAdd={addToCart} onBack={() => { setVendorPage(null); window.history.replaceState({}, "", "/"); }} />}
       {page === "cart"    && <CartPage    cart={cart} onRemove={removeFromCart} onUpdateQty={updateQty} goToShop={() => setPage("shop")} goToPayment={() => setPage("payment")} promoCode={promoCode} promoDiscount={promoDiscount} promoLabel={promoLabel} onApplyPromo={applyPromo} onRemovePromo={removePromo} points={points} />}
       {page === "payment" && <PaymentPage cart={cart} onConfirm={placeOrder} promoDiscount={promoDiscount} promoCode={promoCode} />}
