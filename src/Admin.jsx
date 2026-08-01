@@ -152,6 +152,9 @@ function Dashboard({ onLogout }) {
   const [period, setPeriod]   = useState(30);
   const [loading, setLoading] = useState(true);
   const [unreadMsgs, setUnreadMsgs] = useState(0);
+  const [livreurs, setLivreurs] = useState([]);
+  const [showAddLivreur, setShowAddLivreur] = useState(false);
+  const [newLivreur, setNewLivreur] = useState({});
 
   // Product form
   const EMPTY_PRODUCT = { name: "", category: "Mode", price: "", prix_original: "", reduction: "0", stock: "", image: "", img2: "", img3: "", description: "", sizes: "", colors: "", video: "" };
@@ -174,9 +177,12 @@ function Dashboard({ onLogout }) {
       supabase.from("utilisateurs").select("*").order("created_at", { ascending: false }),
       supabase.from("messages").select("*").order("created_at", { ascending: true }),
       supabase.from("faqs").select("*").order("id"),
+      supabase.from("livreurs").select("*").order("created_at", { ascending: false }),
     ]);
     setProducts(p || []); setOrders(o || []); setVendors(v || []);
     setUsers(u || []); setMessages(m || []); setFaqs(f || []);
+    const { data: liv } = await supabase.from("livreurs").select("*").order("created_at", { ascending: false });
+    setLivreurs(liv || []);
     setUnreadMsgs((m || []).filter(msg => !msg.lu).length);
     const { data: au } = await supabase.auth.getUser();
     setAdminUser(au?.user);
@@ -661,7 +667,114 @@ function Dashboard({ onLogout }) {
         )}
 
         {/* FAQ */}
-        {tab === "faq" && (
+        
+        {tab === "livreurs" && (
+          <>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
+              <div>
+                <h2 style={{ fontWeight: 800, fontSize: 22, color: "#1A0A2E" }}>🚚 Livreurs</h2>
+                <p style={{ fontSize: 13, color: "#9CA3AF" }}>{livreurs.length} livreur{livreurs.length > 1 ? "s" : ""} enregistré{livreurs.length > 1 ? "s" : ""}</p>
+              </div>
+              <button onClick={() => setShowAddLivreur(true)} style={{ background: `linear-gradient(135deg, ${VIOLET}, ${VIOLET_DARK})`, color: "#fff", border: "none", padding: "11px 22px", borderRadius: 99, fontWeight: 700, fontSize: 14 }}>
+                + Ajouter un livreur
+              </button>
+            </div>
+
+            {showAddLivreur && (
+              <div style={{ background: "#fff", borderRadius: 16, border: `1.5px solid ${VIOLET}`, padding: "24px", marginBottom: 20 }}>
+                <h3 style={{ fontWeight: 700, fontSize: 16, color: VIOLET, marginBottom: 16 }}>➕ Nouveau livreur</h3>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+                  {[
+                    { label: "Nom complet", key: "nom", placeholder: "Ex: Moussa Coulibaly" },
+                    { label: "Téléphone", key: "telephone", placeholder: "Ex: +223 91 00 00 00" },
+                    { label: "Zone de livraison", key: "zone", placeholder: "Ex: Bamako centre, ACI 2000" },
+                  ].map(f => (
+                    <div key={f.key}>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: VIOLET, display: "block", marginBottom: 6 }}>{f.label}</label>
+                      <input placeholder={f.placeholder} value={newLivreur[f.key] || ""} onChange={e => setNewLivreur(p => ({ ...p, [f.key]: e.target.value }))}
+                        style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${BORDER}`, fontSize: 14, background: BG }} />
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button onClick={async () => {
+                    if (!newLivreur.nom || !newLivreur.telephone) return;
+                    await supabase.from("livreurs").insert(newLivreur);
+                    setNewLivreur({}); setShowAddLivreur(false); loadAll();
+                  }} style={{ background: "linear-gradient(135deg, #059669, #047857)", color: "#fff", border: "none", padding: "11px 24px", borderRadius: 99, fontWeight: 700, fontSize: 14 }}>✓ Enregistrer</button>
+                  <button onClick={() => setShowAddLivreur(false)} style={{ background: BG, color: "#6B7280", border: "none", padding: "11px 20px", borderRadius: 99 }}>Annuler</button>
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px,1fr))", gap: 14, marginBottom: 24 }}>
+              {livreurs.map(l => (
+                <div key={l.id} style={{ background: "#fff", borderRadius: 16, border: `1px solid ${BORDER}`, padding: "18px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: "50%", background: `linear-gradient(135deg, ${VIOLET}, ${JAUNE})`, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 800, fontSize: 18 }}>
+                      {l.nom[0]}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 15 }}>{l.nom}</div>
+                      <div style={{ fontSize: 12, color: "#9CA3AF" }}>📞 {l.telephone}</div>
+                      {l.zone && <div style={{ fontSize: 12, color: "#9CA3AF" }}>📍 {l.zone}</div>}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                    <span style={{ background: l.statut === "disponible" ? "#D1FAE5" : "#FEE2E2", color: l.statut === "disponible" ? "#059669" : "#DC2626", fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 99 }}>
+                      {l.statut === "disponible" ? "✓ Disponible" : "✗ Occupé"}
+                    </span>
+                    <span style={{ fontSize: 12, color: "#9CA3AF" }}>📦 {l.commandes_livrees || 0} livraisons</span>
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button onClick={async () => { await supabase.from("livreurs").update({ statut: l.statut === "disponible" ? "occupe" : "disponible" }).eq("id", l.id); loadAll(); }}
+                      style={{ flex: 1, background: "#EDE9FE", color: VIOLET, border: "none", padding: "8px", borderRadius: 9, fontSize: 12, fontWeight: 600 }}>
+                      {l.statut === "disponible" ? "Marquer occupé" : "Marquer disponible"}
+                    </button>
+                    <button onClick={async () => { if (!window.confirm("Supprimer ?")) return; await supabase.from("livreurs").delete().eq("id", l.id); loadAll(); }}
+                      style={{ background: "#FEE2E2", color: "#DC2626", border: "none", padding: "8px 12px", borderRadius: 9 }}>🗑</button>
+                    <button onClick={() => window.open(`https://wa.me/${l.telephone?.replace(/\D/g,"")}`, "_blank")}
+                      style={{ background: "#25D366", color: "#fff", border: "none", padding: "8px 12px", borderRadius: 9 }}>📱</button>
+                  </div>
+                </div>
+              ))}
+              {livreurs.length === 0 && (
+                <div style={{ textAlign: "center", padding: "40px", color: "#9CA3AF", gridColumn: "1/-1" }}>
+                  <div style={{ fontSize: 40, marginBottom: 12 }}>🚚</div>
+                  <div>Aucun livreur enregistré</div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ background: "#fff", borderRadius: 16, border: `1px solid ${BORDER}`, padding: "20px" }}>
+              <h3 style={{ fontWeight: 700, fontSize: 16, marginBottom: 16, color: "#1A0A2E" }}>📦 Assigner un livreur aux commandes en attente</h3>
+              {orders.filter(o => o.status === "En cours").length === 0 ? (
+                <p style={{ color: "#9CA3AF", fontSize: 13 }}>Aucune commande en attente</p>
+              ) : orders.filter(o => o.status === "En cours").map(o => (
+                <div key={o.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: `1px solid ${BG}`, flexWrap: "wrap" }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: VIOLET }}>{o.id}</div>
+                    <div style={{ fontSize: 12, color: "#9CA3AF" }}>👤 {o.client_nom} · 📍 {o.client_adresse}</div>
+                  </div>
+                  <select onChange={async e => {
+                    if (!e.target.value) return;
+                    await supabase.from("livraisons").insert({ commande_id: o.id, livreur_id: e.target.value });
+                    await supabase.from("commandes").update({ status: "En transit" }).eq("id", o.id);
+                    await supabase.from("livreurs").update({ statut: "occupe" }).eq("id", e.target.value);
+                    loadAll();
+                  }} defaultValue="" style={{ padding: "8px 14px", borderRadius: 10, border: `1.5px solid ${BORDER}`, fontSize: 13, background: BG }}>
+                    <option value="">Choisir un livreur</option>
+                    {livreurs.filter(l => l.statut === "disponible").map(l => (
+                      <option key={l.id} value={l.id}>{l.nom} — {l.zone}</option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+{tab === "faq" && (
           <>
             <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 20, color: "#1A0A2E" }}>❓ FAQ / Contact</h2>
             <div style={{ background: "#fff", borderRadius: 16, border: `1px solid ${BORDER}`, padding: "20px" }}>
