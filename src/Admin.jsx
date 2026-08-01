@@ -281,7 +281,6 @@ function Dashboard({ onLogout }) {
     { key: "messages",  label: "Messages",        icon: "💬", badge: unreadMsgs },
     { key: "users",     label: "Utilisateurs",    icon: "👥" },
     { key: "faq",       label: "FAQ",             icon: "❓" },
-    { key: "livreurs", label: "Livreurs", icon: "??" },
   ];
 
   const Sidebar = () => (
@@ -559,6 +558,14 @@ function Dashboard({ onLogout }) {
                     style={{ background: v.statut === "approuve" ? "#FEE2E2" : "#D1FAE5", color: v.statut === "approuve" ? "#DC2626" : "#059669", border: "none", padding: "6px 14px", borderRadius: 99, fontSize: 12, fontWeight: 600 }}>
                     {v.statut === "approuve" ? "Suspendre" : "Approuver"}
                   </button>
+                  <button onClick={() => {
+                    const ventes = orders.filter(o => o.vendeur_id === v.id).reduce((s, o) => s + o.total, 0);
+                    const commission = Math.round(ventes * 0.1);
+                    const msg = `Bonjour ${v.nom_boutique} !\n\n📊 *Récapitulatif mensuel — Marché+*\n\n💰 Total ventes : ${fmt(ventes)}\n📉 Commission (10%) : ${fmt(commission)}\n✅ Gains nets : ${fmt(ventes - commission)}\n\nMerci d'envoyer *${fmt(commission)}* sur Orange Money au *91 09 05 23* avant le 05 du mois.\n\nMerci ! 🛍 Marché+`;
+                    window.open(`https://wa.me/${v.whatsapp}?text=${encodeURIComponent(msg)}`, "_blank");
+                  }} style={{ background: "#25D366", color: "#fff", border: "none", padding: "6px 12px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                    📱 Récap WhatsApp
+                  </button>
                 </div>
               </div>
             ))}
@@ -815,4 +822,3 @@ export default function AdminApp() {
     </div>
   );
 }
-
