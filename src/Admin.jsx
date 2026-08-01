@@ -173,7 +173,7 @@ function Dashboard({ onLogout }) {
       supabase.from("vendeurs").select("*").order("created_at", { ascending: false }),
       supabase.from("utilisateurs").select("*").order("created_at", { ascending: false }),
       supabase.from("messages").select("*").order("created_at", { ascending: true }),
-      supabase.from("faqs").select("*").order("id").catch(() => ({ data: [] })),
+      supabase.from("faqs").select("*").order("id"),
     ]);
     setProducts(p || []); setOrders(o || []); setVendors(v || []);
     setUsers(u || []); setMessages(m || []); setFaqs(f || []);
