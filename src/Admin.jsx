@@ -281,6 +281,7 @@ function Dashboard({ onLogout }) {
     { key: "messages",  label: "Messages",        icon: "💬", badge: unreadMsgs },
     { key: "users",     label: "Utilisateurs",    icon: "👥" },
     { key: "faq",       label: "FAQ",             icon: "❓" },
+    { key: "livreurs", label: "Livreurs", icon: "??" },
   ];
 
   const Sidebar = () => (
@@ -814,3 +815,4 @@ export default function AdminApp() {
     </div>
   );
 }
+
