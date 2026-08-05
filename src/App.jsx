@@ -1182,8 +1182,9 @@ export default function App() {
       {!showProfile && !showParrainage && !vendorPage && selectedProduct     && <ProductDetailPage product={selectedProduct} onAdd={addToCart} onBack={() => setSelectedProduct(null)} isFavorite={isFavorite} onToggleFav={toggleFavorite} />}
       {!showProfile && !showParrainage && !vendorPage && page === "cart"     && <CartPage cart={cart} onRemove={removeFromCart} onUpdateQty={updateQty} goToShop={() => handlePageChange("shop")} goToPayment={() => handlePageChange("payment")} promoCode={promoCode} promoDiscount={promoDiscount} promoLabel={promoLabel} onApplyPromo={applyPromo} onRemovePromo={removePromo} points={points} />}
       {!showProfile && !showParrainage && !vendorPage && page === "payment"  && <PaymentPage cart={cart} onConfirm={placeOrder} promoDiscount={promoDiscount} promoCode={promoCode} />}
-      {!showProfile && !showParrainage && !vendorPage && page === "orders"   && <OrdersPage
-      {!showProfile && !showParrainage && !vendorPage && page === "tracking"  && <TrackingPage supabase={supabase} />} orders={orders} loading={loadingOrders} />}
+      
+     {!showProfile && !showParrainage && !vendorPage && page === "orders"   && <OrdersPage orders={orders} loading={loadingOrders} />}
+        {!showProfile && !showParrainage && !vendorPage && page === "tracking"  && <TrackingPage supabase={supabase} />}
       {!showProfile && !showParrainage && !vendorPage && page === "favorites" && <FavoritesPage favorites={favorites} onSelect={setSelectedProduct} onToggleFav={toggleFavorite} onAdd={addToCart} isFavorite={isFavorite} />}
 
       {/* Profile */}
