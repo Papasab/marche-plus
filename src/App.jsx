@@ -550,8 +550,8 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
   const STEPS    = ["Livraison", "Paiement", "Confirmation"];
   const METHODS  = [
     { key: "mobile", label: "Mobile Money", sub: "Orange Money, Moov Money", icon: "📱" },
+    { key: "paydunya", label: "Paiement en ligne", sub: "Orange Money, Moov Money, Carte bancaire", icon: "💳" },
     { key: "cash",   label: "À la livraison", sub: "Payez en espèces à réception", icon: "💵" },
-    { key: "card",   label: "Carte bancaire", sub: "Visa, Mastercard", icon: "💳" },
   ];
 
   const StepBar = () => (
@@ -620,6 +620,96 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
               </div>
             </div>
           ))}
+
+          {form.method === "paydunya" && (
+            <div style={{ background: "#EDE9FE", borderRadius: 12, padding: "16px", marginTop: 14, border: "1px solid #6B21A8" }}>
+              <div style={{ fontWeight: 700, fontSize: 15, color: "#6B21A8", marginBottom: 10 }}>💳 Paiement sécurisé via PayDunya</div>
+              <p style={{ fontSize: 13, color: "#6B7280", marginBottom: 14 }}>Vous serez redirigé vers la page de paiement sécurisée PayDunya pour payer avec Orange Money, Moov Money ou carte bancaire.</p>
+              <button onClick={async () => {
+                const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+                const discount = Math.round(subtotal * promoDiscount / 100);
+                const total = subtotal - discount;
+                try {
+                  const res = await fetch("https://app.paydunya.com/api/v1/checkout-invoice/create", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "PAYDUNYA-MASTER-KEY": import.meta.env.VITE_PAYDUNYA_MASTER_KEY,
+                      "PAYDUNYA-PRIVATE-KEY": import.meta.env.VITE_PAYDUNYA_PRIVATE_KEY,
+                      "PAYDUNYA-TOKEN": import.meta.env.VITE_PAYDUNYA_TOKEN,
+                    },
+                    body: JSON.stringify({
+                      invoice: {
+                        total_amount: total,
+                        description: `Commande Marché+ — ${cart.map(i => i.name).join(", ")}`,
+                      },
+                      store: { name: "Marché+" },
+                      actions: {
+                        cancel_url: window.location.href,
+                        return_url: window.location.href,
+                        callback_url: window.location.href,
+                      },
+                    }),
+                  });
+                  const data = await res.json();
+                  if (data.response_code === "00") {
+                    window.location.href = data.response_text;
+                  } else {
+                    alert("Erreur PayDunya : " + data.response_text);
+                  }
+                } catch (e) {
+                  alert("Erreur de connexion PayDunya");
+                }
+              }} style={{ width: "100%", background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "13px", borderRadius: 99, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+                💳 Payer maintenant
+              </button>
+            </div>
+          )}
+
+          {form.method === "paydunya" && (
+            <div style={{ background: "#EDE9FE", borderRadius: 12, padding: "16px", marginTop: 14, border: "1px solid #6B21A8" }}>
+              <div style={{ fontWeight: 700, fontSize: 15, color: "#6B21A8", marginBottom: 10 }}>💳 Paiement sécurisé via PayDunya</div>
+              <p style={{ fontSize: 13, color: "#6B7280", marginBottom: 14 }}>Vous serez redirigé vers la page de paiement sécurisée PayDunya pour payer avec Orange Money, Moov Money ou carte bancaire.</p>
+              <button onClick={async () => {
+                const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+                const discount = Math.round(subtotal * promoDiscount / 100);
+                const total = subtotal - discount;
+                try {
+                  const res = await fetch("https://app.paydunya.com/api/v1/checkout-invoice/create", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "PAYDUNYA-MASTER-KEY": import.meta.env.VITE_PAYDUNYA_MASTER_KEY,
+                      "PAYDUNYA-PRIVATE-KEY": import.meta.env.VITE_PAYDUNYA_PRIVATE_KEY,
+                      "PAYDUNYA-TOKEN": import.meta.env.VITE_PAYDUNYA_TOKEN,
+                    },
+                    body: JSON.stringify({
+                      invoice: {
+                        total_amount: total,
+                        description: `Commande Marché+ — ${cart.map(i => i.name).join(", ")}`,
+                      },
+                      store: { name: "Marché+" },
+                      actions: {
+                        cancel_url: window.location.href,
+                        return_url: window.location.href,
+                        callback_url: window.location.href,
+                      },
+                    }),
+                  });
+                  const data = await res.json();
+                  if (data.response_code === "00") {
+                    window.location.href = data.response_text;
+                  } else {
+                    alert("Erreur PayDunya : " + data.response_text);
+                  }
+                } catch (e) {
+                  alert("Erreur de connexion PayDunya");
+                }
+              }} style={{ width: "100%", background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "13px", borderRadius: 99, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+                💳 Payer maintenant
+              </button>
+            </div>
+          )}
 
           {form.method === "mobile" && (
             <div style={{ background: "#FEF3C7", borderRadius: 12, padding: "16px", marginTop: 14, border: "1px solid #D4AF37" }}>
