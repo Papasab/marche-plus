@@ -21,6 +21,9 @@ const PROMO_CODES = {
 
 // ── Auth ──────────────────────────────────────────────────────────
 function AuthPage({ onAuth }) {
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir";
+  const emoji = hour < 12 ? "🌅" : hour < 18 ? "☀️" : "🌙";
   const [mode, setMode]       = useState("login");
   const [email, setEmail]     = useState("");
   const [password, setPass]   = useState("");
@@ -43,6 +46,9 @@ function AuthPage({ onAuth }) {
       <div style={{ width: "100%", maxWidth: 420 }}>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <img src="/logo.png" alt="Marché+" style={{ height: 80, objectFit: "contain", marginBottom: 12 }} onError={e => e.target.style.display="none"} />
+          <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 99, padding: "8px 20px", display: "inline-block", marginBottom: 12, fontSize: 15, color: "#fff", fontWeight: 600 }}>
+            {emoji} {greeting} ! Bienvenue sur Marché+
+          </div>
           <h1 style={{ fontWeight: 900, fontSize: 32, color: "#fff", letterSpacing: "-1px" }}>Marché+</h1>
           <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, marginTop: 4 }}>VOS ACCESSOIRES, VOTRE STYLE.</p>
         </div>
@@ -82,7 +88,7 @@ function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount,
 
       {/* Nav links desktop */}
       <div className="nav-links" style={{ display: "flex", gap: 4 }}>
-        {[{ key: "home", label: "Accueil" }, { key: "shop", label: "Boutique" }, { key: "orders", label: "Commandes" }].map(({ key, label }) => (
+        {[{ key: "home", label: "Accueil" }, { key: "shop", label: "Boutique" }, { key: "orders", label: "Commandes" }, { key: "tracking", label: "Suivi" }, { key: "tracking", label: "Suivi" }, { key: "tracking", label: "Suivi" }, { key: "tracking", label: "Suivi" }].map(({ key, label }) => (
           <button key={key} onClick={() => setPage(key)} style={{ background: page === key ? "#EDE9FE" : "transparent", color: page === key ? "#6B21A8" : "#6B7280", border: "none", padding: "8px 14px", borderRadius: 99, fontWeight: page === key ? 700 : 500, fontSize: 14 }}>{label}</button>
         ))}
       </div>
@@ -673,6 +679,91 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
 }
 
 // ── Orders Page ───────────────────────────────────────────────────
+function TrackingPage({ supabase }) {
+  const [orderId, setOrderId] = useState("");
+  const [order, setOrder]     = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState("");
+  const STEPS = ["Reçue", "Préparée", "Expédiée", "Livrée"];
+
+  const search = async () => {
+    if (!orderId.trim()) return;
+    setLoading(true); setError(""); setOrder(null);
+    const { data } = await supabase.from("commandes").select("*").eq("id", orderId.trim()).single();
+    if (data) setOrder(data);
+    else setError("Commande introuvable. Vérifiez le numéro.");
+    setLoading(false);
+  };
+
+  const cancel = async () => {
+    if (!window.confirm("Voulez-vous vraiment annuler cette commande ?")) return;
+    await supabase.from("commandes").update({ status: "Annulé" }).eq("id", order.id);
+    setOrder({ ...order, status: "Annulé" });
+  };
+
+  const stepIdx = order ? STEPS.indexOf(order.status === "En cours" ? "Reçue" : order.status === "En transit" ? "Expédiée" : order.status) : -1;
+  const pct = order?.status === "Livrée" ? 100 : order?.status === "Annulé" ? 0 : Math.max(10, ((stepIdx + 1) / STEPS.length) * 100);
+
+  return (
+    <div style={{ maxWidth: 600, margin: "0 auto", padding: "28px 16px" }}>
+      <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 6, color: "#1A0A2E" }}>📍 Suivi de commande</h2>
+      <p style={{ fontSize: 14, color: "#9CA3AF", marginBottom: 24 }}>Entrez votre numéro de commande pour suivre votre livraison</p>
+
+      <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
+        <input placeholder="Ex: CMD-123456" value={orderId} onChange={e => setOrderId(e.target.value.toUpperCase())} onKeyDown={e => e.key === "Enter" && search()}
+          style={{ flex: 1, padding: "12px 16px", borderRadius: 12, border: "1.5px solid #E8E0FF", fontSize: 14, background: "#fff" }} />
+        <button onClick={search} disabled={loading} style={{ background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "12px 24px", borderRadius: 12, fontWeight: 700, fontSize: 14 }}>
+          {loading ? "..." : "Rechercher"}
+        </button>
+      </div>
+
+      {error && <div style={{ background: "#FEE2E2", color: "#DC2626", padding: "12px 16px", borderRadius: 12, fontSize: 14, marginBottom: 16 }}>✗ {error}</div>}
+
+      {order && (
+        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8E0FF", padding: "20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10, marginBottom: 16 }}>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 18, color: "#6B21A8" }}>{order.id}</div>
+              <div style={{ fontSize: 13, color: "#9CA3AF", marginTop: 4 }}>👤 {order.client_nom} · 📞 {order.client_telephone}</div>
+              <div style={{ fontSize: 13, color: "#9CA3AF" }}>📍 {order.client_adresse} · 📅 {order.date}</div>
+            </div>
+            <div style={{ fontWeight: 900, fontSize: 20, color: "#D4AF37" }}>{fmt(order.total)}</div>
+          </div>
+
+          {order.status !== "Annulé" ? (
+            <div style={{ background: "#F5F2FF", borderRadius: 12, padding: "16px", marginBottom: 16 }}>
+              <div style={{ fontSize: 13, color: "#6B21A8", fontWeight: 600, marginBottom: 10 }}>
+                {order.status === "Livrée" ? "✅ Commande livrée avec succès !" : "⏳ En cours de traitement"}
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                {STEPS.map(s => <span key={s} style={{ fontSize: 10, color: "#9CA3AF" }}>{s}</span>)}
+              </div>
+              <div style={{ height: 8, background: "#E8E0FF", borderRadius: 99, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${pct}%`, background: order.status === "Livrée" ? "#059669" : "linear-gradient(90deg, #6B21A8, #D4AF37)", borderRadius: 99, transition: "width .5s" }} />
+              </div>
+            </div>
+          ) : (
+            <div style={{ background: "#FEE2E2", borderRadius: 12, padding: "14px 16px", marginBottom: 16 }}>
+              <div style={{ fontSize: 13, color: "#DC2626", fontWeight: 600 }}>✗ Commande annulée</div>
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={() => navigator.clipboard.writeText(`https://marche-plus.vercel.app/?suivi=${order.id}`)} style={{ flex: 1, background: "#F5F2FF", color: "#6B21A8", border: "none", padding: "11px", borderRadius: 12, fontWeight: 600, fontSize: 13 }}>
+              🔗 Copier le lien de suivi
+            </button>
+            {order.status === "En cours" && (
+              <button onClick={cancel} style={{ background: "#FEE2E2", color: "#DC2626", border: "none", padding: "11px 18px", borderRadius: 12, fontWeight: 600, fontSize: 13 }}>
+                ✗ Annuler
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function OrdersPage({ orders, loading }) {
   const STATUS_COLOR = { "En cours": "#1a56db", "Préparée": "#D4AF37", "Expédiée": "#6B21A8", "Livrée": "#059669", "Annulé": "#DC2626", "En transit": "#6B21A8" };
   const STEPS = ["Reçue", "Préparée", "Expédiée", "Livrée"];
@@ -1091,7 +1182,8 @@ export default function App() {
       {!showProfile && !showParrainage && !vendorPage && selectedProduct     && <ProductDetailPage product={selectedProduct} onAdd={addToCart} onBack={() => setSelectedProduct(null)} isFavorite={isFavorite} onToggleFav={toggleFavorite} />}
       {!showProfile && !showParrainage && !vendorPage && page === "cart"     && <CartPage cart={cart} onRemove={removeFromCart} onUpdateQty={updateQty} goToShop={() => handlePageChange("shop")} goToPayment={() => handlePageChange("payment")} promoCode={promoCode} promoDiscount={promoDiscount} promoLabel={promoLabel} onApplyPromo={applyPromo} onRemovePromo={removePromo} points={points} />}
       {!showProfile && !showParrainage && !vendorPage && page === "payment"  && <PaymentPage cart={cart} onConfirm={placeOrder} promoDiscount={promoDiscount} promoCode={promoCode} />}
-      {!showProfile && !showParrainage && !vendorPage && page === "orders"   && <OrdersPage orders={orders} loading={loadingOrders} />}
+      {!showProfile && !showParrainage && !vendorPage && page === "orders"   && <OrdersPage
+      {!showProfile && !showParrainage && !vendorPage && page === "tracking"  && <TrackingPage supabase={supabase} />} orders={orders} loading={loadingOrders} />}
       {!showProfile && !showParrainage && !vendorPage && page === "favorites" && <FavoritesPage favorites={favorites} onSelect={setSelectedProduct} onToggleFav={toggleFavorite} onAdd={addToCart} isFavorite={isFavorite} />}
 
       {/* Profile */}
