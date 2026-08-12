@@ -19,6 +19,39 @@ const PROMO_CODES = {
   MALI10:    { discount: 10, label: "10% de réduction" },
 };
 
+// ── Conditions d'utilisation ──────────────────────────────────────
+function ConditionsPage({ onBack }) {
+  return (
+    <div style={{ maxWidth: 800, margin: "0 auto", padding: "28px 16px" }}>
+      <button onClick={onBack} style={{ background: "none", border: "none", color: "#6B21A8", fontSize: 14, cursor: "pointer", marginBottom: 20, fontWeight: 600 }}>← Retour</button>
+      <div style={{ background: "#fff", borderRadius: 20, border: "1px solid #E8E0FF", padding: "32px" }}>
+        <h1 style={{ fontWeight: 900, fontSize: 26, color: "#1A0A2E", marginBottom: 6 }}>📋 Conditions d'utilisation</h1>
+        <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 28 }}>Dernière mise à jour : {new Date().toLocaleDateString("fr-FR")}</p>
+
+        {[
+          { title: "1. Présentation de Marché+", content: "Marché+ est une marketplace en ligne basée au Mali qui permet aux vendeurs de proposer leurs produits et aux clients de les acheter facilement. Nous facilitons les transactions entre acheteurs et vendeurs tout en prélevant une commission de 10% sur chaque vente." },
+          { title: "2. Inscription et compte", content: "Pour utiliser Marché+, vous devez créer un compte avec une adresse email valide. Vous êtes responsable de la sécurité de votre compte et de toutes les activités qui s'y déroulent. Marché+ se réserve le droit de suspendre tout compte en cas d'abus." },
+          { title: "3. Commandes et paiements", content: "Les commandes sont passées en ligne et confirmées par WhatsApp. Le paiement s'effectue par Orange Money, Moov Money ou à la livraison. Après confirmation du paiement, la commande est traitée dans les 24-48 heures." },
+          { title: "4. Livraison", content: "Marché+ assure la livraison dans les principales villes du Mali. Les délais de livraison varient entre 1 et 5 jours ouvrables selon votre localisation. Les frais de livraison sont calculés en fonction de la distance." },
+          { title: "5. Retours et remboursements", content: "Un produit peut être retourné dans les 48 heures suivant la réception si il est défectueux ou ne correspond pas à la description. Contactez-nous sur WhatsApp au +223 91 09 05 23 pour initier un retour. Les remboursements sont effectués dans les 5 jours ouvrables." },
+          { title: "6. Vendeurs", content: "Les vendeurs doivent s'inscrire et être approuvés par Marché+ avant de vendre. Une commission de 10% est prélevée sur chaque vente. Les vendeurs sont responsables de la qualité et de la conformité de leurs produits." },
+          { title: "7. Protection des données", content: "Marché+ collecte et utilise vos données personnelles uniquement pour traiter vos commandes et améliorer nos services. Vos données ne sont jamais vendues à des tiers. Vous pouvez demander la suppression de vos données à tout moment." },
+          { title: "8. Contact", content: "Pour toute question, contactez-nous sur WhatsApp au +223 91 09 05 23 ou par email à kone91139@gmail.com. Notre équipe est disponible du lundi au samedi de 8h à 20h." },
+        ].map(s => (
+          <div key={s.title} style={{ marginBottom: 24 }}>
+            <h2 style={{ fontWeight: 700, fontSize: 16, color: "#6B21A8", marginBottom: 8 }}>{s.title}</h2>
+            <p style={{ fontSize: 14, color: "#6B7280", lineHeight: 1.8 }}>{s.content}</p>
+          </div>
+        ))}
+
+        <div style={{ background: "#F5F2FF", borderRadius: 12, padding: "16px 20px", marginTop: 20, borderLeft: "4px solid #6B21A8" }}>
+          <p style={{ fontSize: 13, color: "#6B21A8", fontWeight: 600 }}>En utilisant Marché+, vous acceptez ces conditions d'utilisation. Pour toute question, contactez-nous sur WhatsApp.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Auth ──────────────────────────────────────────────────────────
 function AuthPage({ onAuth }) {
   const hour = new Date().getHours();
@@ -1291,8 +1324,20 @@ export default function App() {
       {/* Bottom Nav */}
       <BottomNav page={page} setPage={handlePageChange} cartCount={cartCount} favCount={favorites.length} onProfile={() => { setShowProfile(true); setSelectedProduct(null); setVendorPage(null); }} />
 
+      {page === "conditions" && !showProfile && !vendorPage && <ConditionsPage onBack={() => setPage("home")} />}
       <FloatingWA />
       <Toast />
+      {/* Footer */}
+      {!showProfile && !vendorPage && !showParrainage && (
+        <div style={{ background: "#1A0A2E", color: "rgba(255,255,255,0.6)", textAlign: "center", padding: "20px 16px", fontSize: 12, marginTop: 40 }}>
+          <div style={{ marginBottom: 8 }}>
+            <span onClick={() => setPage("conditions")} style={{ color: "#D4AF37", cursor: "pointer", fontWeight: 600 }}>Conditions d'utilisation</span>
+            {" · "}
+            <a href={`https://wa.me/${WHATSAPP}`} target="_blank" rel="noreferrer" style={{ color: "rgba(255,255,255,0.6)", textDecoration: "none" }}>Contact WhatsApp</a>
+          </div>
+          <div>© {new Date().getFullYear()} Marché+ Mali — Tous droits réservés</div>
+        </div>
+      )}
     </>
   );
 }
