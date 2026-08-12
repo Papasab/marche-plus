@@ -374,7 +374,7 @@ function ShopPage({ products, onAdd, onSelect, favorites, onToggleFav, isFavorit
           <div style={{ fontWeight: 600 }}>Aucun produit trouvé</div>
         </div>
       ) : (
-        <div className="product-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+        <div className="product-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
           {filtered.map(p => <ProductCard key={p.id} p={p} onSelect={onSelect} onAdd={onAdd} isFavorite={isFavorite} onToggleFav={onToggleFav} />)}
         </div>
       )}
