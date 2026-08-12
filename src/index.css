@@ -88,7 +88,7 @@ button:active { transform: scale(0.97); }
 }
 
 @media (max-width: 480px) {
-  .product-grid { grid-template-columns: 1fr !important; }
+  
   .home-grid { grid-template-columns: 1fr !important; }
   .home-cats { grid-template-columns: repeat(2,1fr) !important; }
 }
@@ -97,4 +97,5 @@ button:active { transform: scale(0.97); }
   .nav-mob { display: none !important; }
   .mobile-dropdown { display: none !important; }
 }
+
 
