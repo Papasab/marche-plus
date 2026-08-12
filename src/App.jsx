@@ -582,7 +582,9 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
   const total    = subtotal - discount;
   const STEPS    = ["Livraison", "Paiement", "Confirmation"];
   const METHODS  = [
-    { key: "mobile", label: "Mobile Money", sub: "Orange Money, Moov Money", icon: "📱" },
+    { key: "mobile", label: "Orange Money", sub: "Paiement via Orange Money", icon: "🟠" },
+    { key: "wave", label: "Wave", sub: "Paiement via Wave", icon: "🌊" },
+    { key: "moov", label: "Moov Money", sub: "Paiement via Moov Money", icon: "🔵" },
     { key: "paydunya", label: "Paiement en ligne", sub: "Orange Money, Moov Money, Carte bancaire", icon: "💳" },
     { key: "cash",   label: "À la livraison", sub: "Payez en espèces à réception", icon: "💵" },
   ];
@@ -744,7 +746,30 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
             </div>
           )}
 
-          {form.method === "mobile" && (
+          {(form.method === "mobile" || form.method === "wave" || form.method === "moov") && (
+            <div style={{ background: form.method === "wave" ? "#E8F5E9" : form.method === "moov" ? "#E3F2FD" : "#FEF3C7", borderRadius: 12, padding: "16px", marginTop: 14, border: `1px solid ${form.method === "wave" ? "#4CAF50" : form.method === "moov" ? "#2196F3" : "#D4AF37"}` }}>
+              <div style={{ fontWeight: 700, fontSize: 15, color: form.method === "wave" ? "#4CAF50" : form.method === "moov" ? "#2196F3" : "#D4AF37", marginBottom: 10 }}>
+                {form.method === "wave" ? "🌊 Paiement Wave" : form.method === "moov" ? "🔵 Paiement Moov Money" : "🟠 Paiement Orange Money"}
+              </div>
+              {[
+                form.method === "wave" ? "Ouvrez l'application Wave" : `Composez ${form.method === "moov" ? "#155#" : "#144#"} sur votre téléphone`,
+                form.method === "wave" ? 'Appuyez sur "Envoyer"' : 'Choisissez "Transfert d\'argent"',
+                `Entrez le numéro : ${form.method === "wave" ? "91 09 05 23" : form.method === "moov" ? "91 09 05 23" : "91 09 05 23"}`,
+                `Entrez le montant : ${fmt(cart.reduce((s,i) => s+i.price*i.qty, 0) - Math.round(cart.reduce((s,i) => s+i.price*i.qty, 0) * promoDiscount / 100))}`,
+                "Confirmez avec votre code secret",
+              ].map((s, i) => (
+                <div key={i} style={{ display: "flex", gap: 10, marginBottom: 8, fontSize: 13 }}>
+                  <span style={{ background: form.method === "wave" ? "#4CAF50" : form.method === "moov" ? "#2196F3" : "#6B21A8", color: "#fff", width: 20, height: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i+1}</span>
+                  <span>{s}</span>
+                </div>
+              ))}
+              <div style={{ background: "rgba(0,0,0,0.05)", borderRadius: 8, padding: "8px 12px", marginTop: 8, fontSize: 12, color: "#555" }}>
+                ⚠ Envoyez la capture du paiement sur WhatsApp après confirmation
+              </div>
+            </div>
+          )}
+
+        {(form.method === "mobile" && false) && (
             <div style={{ background: "#FEF3C7", borderRadius: 12, padding: "16px", marginTop: 14, border: "1px solid #D4AF37" }}>
               <div style={{ fontWeight: 700, fontSize: 15, color: "#D4AF37", marginBottom: 10 }}>🟠 Paiement Orange Money</div>
               {[
