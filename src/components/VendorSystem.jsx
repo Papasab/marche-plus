@@ -181,13 +181,14 @@ export function VendorDashboard({ supabase, vendor, onBack, user }) {
     if (!newProduct.name || !newProduct.price) return;
     setSaving(true);
     const images = [newProduct.image, newProduct.img2, newProduct.img3].filter(Boolean).join(",");
+    const video = newProduct.video || "";
     const prixOriginal = parseInt(newProduct.price) || 0;
     const reduction = parseInt(newProduct.reduction) || 0;
     const prixFinal = reduction > 0 ? Math.round(prixOriginal * (1 - reduction / 100)) : prixOriginal;
     const data = {
       name: newProduct.name, price: prixFinal, prix_original: prixOriginal, reduction,
       stock: parseInt(newProduct.stock) || 0, category: newProduct.category,
-      description: newProduct.description, image: newProduct.image, images, vendeur_id: vendor.id, rating: editingProduct?.rating || 5, reviews: editingProduct?.reviews || 0,
+      description: newProduct.description, image: newProduct.image, images, video, vendeur_id: vendor.id, rating: editingProduct?.rating || 5, reviews: editingProduct?.reviews || 0,
     };
     if (editingProduct) await supabase.from("produits").update(data).eq("id", editingProduct.id);
     else await supabase.from("produits").insert(data);
@@ -336,6 +337,53 @@ export function VendorDashboard({ supabase, vendor, onBack, user }) {
                   <ImageUploader currentImage={newProduct.image} onImageChange={url => setNewProduct(p => ({ ...p, image: url }))} supabase={supabase} label="📷 Photo principale *" />
                   <ImageUploader currentImage={newProduct.img2} onImageChange={url => setNewProduct(p => ({ ...p, img2: url }))} supabase={supabase} label="📷 Photo 2" />
                   <ImageUploader currentImage={newProduct.img3} onImageChange={url => setNewProduct(p => ({ ...p, img3: url }))} supabase={supabase} label="📷 Photo 3" />
+              </div>
+
+              {/* Upload vidéo */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "#6B21A8", display: "block", marginBottom: 6 }}>🎥 Vidéo du produit (optionnel)</label>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  {/* Upload depuis téléphone */}
+                  <div>
+                    <label style={{ fontSize: 11, color: "#9CA3AF", display: "block", marginBottom: 6 }}>📱 Depuis votre téléphone</label>
+                    <div onClick={() => document.getElementById("vendor-video-upload").click()} style={{ border: "2px dashed #E8E0FF", borderRadius: 12, padding: "16px", textAlign: "center", cursor: "pointer", background: "#F5F2FF" }}>
+                      {newProduct.video && !newProduct.video.includes("youtube") && !newProduct.video.includes("youtu") ? (
+                        <video src={newProduct.video} style={{ width: "100%", borderRadius: 8, maxHeight: 120 }} controls />
+                      ) : (
+                        <>
+                          <div style={{ fontSize: 28, marginBottom: 4 }}>🎬</div>
+                          <div style={{ fontSize: 12, color: "#9CA3AF" }}>Cliquer pour uploader</div>
+                          <div style={{ fontSize: 10, color: "#C4B5FD", marginTop: 2 }}>MP4, MOV, AVI</div>
+                        </>
+                      )}
+                    </div>
+                    <input id="vendor-video-upload" type="file" accept="video/*" style={{ display: "none" }} onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = async (ev) => {
+                        const base64 = ev.target.result;
+                        setNewProduct(p => ({ ...p, video: base64 }));
+                        const filename = `videos/${Date.now()}-${file.name.replace(/\s/g, "-")}`;
+                        const { data: uploadData, error } = await supabase.storage.from("images").upload(filename, file, { upsert: true });
+                        if (!error && uploadData) {
+                          const { data: urlData } = supabase.storage.from("images").getPublicUrl(filename);
+                          setNewProduct(p => ({ ...p, video: urlData.publicUrl }));
+                        }
+                      };
+                      reader.readAsDataURL(file);
+                    }} />
+                  </div>
+                  {/* URL YouTube */}
+                  <div>
+                    <label style={{ fontSize: 11, color: "#9CA3AF", display: "block", marginBottom: 6 }}>🎬 Ou lien YouTube</label>
+                    <input placeholder="https://www.youtube.com/watch?v=..." value={newProduct.video && (newProduct.video.includes("youtube") || newProduct.video.includes("youtu")) ? newProduct.video : ""} onChange={e => setNewProduct(p => ({ ...p, video: e.target.value }))}
+                      style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid #E8E0FF", fontSize: 13, background: "#F5F2FF", height: 120 }} />
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
