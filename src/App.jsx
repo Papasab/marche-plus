@@ -1342,8 +1342,16 @@ export default function App() {
 
     const vendeurItems = cart.filter(i => i.vendeur_id);
     if (vendeurItems.length > 0) {
-      const { data: v } = await supabase.from("vendeurs").select("whatsapp").eq("id", vendeurItems[0].vendeur_id).single();
-      window.location.href = `https://wa.me/${v?.whatsapp || WHATSAPP}?text=${encodeURIComponent(msg)}`;
+      // Envoyer à chaque vendeur unique
+      const vendeurIds = [...new Set(vendeurItems.map(i => i.vendeur_id))];
+      for (const vendeurId of vendeurIds) {
+        const { data: v } = await supabase.from("vendeurs").select("whatsapp, nom_boutique").eq("id", vendeurId).single();
+        const prodVendeur = cart.filter(i => i.vendeur_id === vendeurId);
+        const msgVendeur = `🛍 *NOUVELLE COMMANDE — Marché+*\n━━━━━━━━━━━━━━━━━━━━\n\n📋 *Commande :* ${orderId}\n📅 *Date :* ${new Date().toLocaleDateString("fr-FR")}\n\n👤 *Client :* ${form.name}\n📞 *Téléphone :* ${form.phone}\n📍 *Adresse :* ${form.address}\n💳 *Paiement :* ${methodLabel}\n\n🛒 *Vos produits commandés :*\n${prodVendeur.map(i => `• ${i.name}${i.color ? ` (${i.color})` : ""}${i.size ? ` - Taille: ${i.size}` : ""} x${i.qty} — ${fmt(i.price * i.qty)}`).join("\n")}\n\n💰 *Total : ${fmt(prodVendeur.reduce((s,i) => s + i.price * i.qty, 0))}*\n📉 Commission Marché+ (10%) : ${fmt(Math.round(prodVendeur.reduce((s,i) => s + i.price * i.qty, 0) * 0.1))}\n\n✅ Merci ! Contactez le client rapidement. 🙏`;
+        window.open(`https://wa.me/${v?.whatsapp || WHATSAPP}?text=${encodeURIComponent(msgVendeur)}`, "_blank");
+      }
+      // Envoyer aussi à l'admin
+      window.location.href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
     } else {
       window.location.href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
     }
