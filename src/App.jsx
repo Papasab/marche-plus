@@ -383,7 +383,72 @@ function ShopPage({ products, onAdd, onSelect, favorites, onToggleFav, isFavorit
 }
 
 // ── Product Detail ────────────────────────────────────────────────
-function ProductDetailPage({ product: p, onAdd, onBack, isFavorite, onToggleFav }) {
+function AvisSection({ produitId, user }) {
+  const [avis, setAvis] = useState([]);
+  const [note, setNote] = useState(5);
+  const [comment, setComment] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    supabase.from("avis").select("*").eq("produit_id", produitId).order("created_at", { ascending: false }).then(({ data }) => setAvis(data || []));
+  }, [produitId]);
+
+  const saveAvis = async () => {
+    if (!comment.trim()) return;
+    setSaving(true);
+    await supabase.from("avis").insert({ produit_id: produitId, user_id: user?.id, client_nom: user?.email?.split("@")[0], note, commentaire: comment });
+    setComment(""); setSaving(false);
+    const { data } = await supabase.from("avis").select("*").eq("produit_id", produitId).order("created_at", { ascending: false });
+    setAvis(data || []);
+  };
+
+  const avgNote = avis.length ? (avis.reduce((s, a) => s + a.note, 0) / avis.length).toFixed(1) : 0;
+
+  return (
+    <div style={{ marginTop: 32 }}>
+      <h2 style={{ fontWeight: 800, fontSize: 18, marginBottom: 16, color: "#1A0A2E" }}>⭐ Avis clients ({avis.length})</h2>
+      {avis.length > 0 && (
+        <div style={{ background: "#F5F2FF", borderRadius: 14, padding: "16px 20px", marginBottom: 20, display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontWeight: 900, fontSize: 36, color: "#D4AF37" }}>{avgNote}</div>
+            <div style={{ display: "flex", gap: 2 }}>{[1,2,3,4,5].map(n => <span key={n} style={{ fontSize: 14, color: n <= Math.round(avgNote) ? "#D4AF37" : "#E8E0FF" }}>★</span>)}</div>
+            <div style={{ fontSize: 12, color: "#9CA3AF" }}>{avis.length} avis</div>
+          </div>
+        </div>
+      )}
+      {user && (
+        <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E8E0FF", padding: "20px", marginBottom: 20 }}>
+          <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14, color: "#6B21A8" }}>✍️ Laisser un avis</h3>
+          <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+            {[1,2,3,4,5].map(n => <button key={n} onClick={() => setNote(n)} style={{ width: 36, height: 36, borderRadius: "50%", background: n <= note ? "#D4AF37" : "#F5F2FF", color: n <= note ? "#fff" : "#9CA3AF", border: "none", fontSize: 16, cursor: "pointer" }}>★</button>)}
+          </div>
+          <textarea placeholder="Partagez votre expérience..." value={comment} onChange={e => setComment(e.target.value)} rows={3}
+            style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid #E8E0FF", fontSize: 14, fontFamily: "inherit", marginBottom: 12, background: "#F5F2FF" }} />
+          <button onClick={saveAvis} disabled={saving} style={{ background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "10px 24px", borderRadius: 99, fontWeight: 700, fontSize: 14 }}>
+            {saving ? "Envoi..." : "✓ Publier mon avis"}
+          </button>
+        </div>
+      )}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {avis.map(a => (
+          <div key={a.id} style={{ background: "#fff", borderRadius: 14, border: "1px solid #E8E0FF", padding: "16px 18px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>👤 {a.client_nom}</div>
+                <div style={{ display: "flex", gap: 1 }}>{[1,2,3,4,5].map(n => <span key={n} style={{ fontSize: 12, color: n <= a.note ? "#D4AF37" : "#E8E0FF" }}>★</span>)}</div>
+              </div>
+              <div style={{ fontSize: 11, color: "#9CA3AF" }}>{new Date(a.created_at).toLocaleDateString("fr-FR")}</div>
+            </div>
+            <p style={{ fontSize: 14, color: "#6B7280", lineHeight: 1.6 }}>{a.commentaire}</p>
+          </div>
+        ))}
+        {avis.length === 0 && <div style={{ textAlign: "center", padding: "30px", color: "#9CA3AF", background: "#fff", borderRadius: 14, border: "1px solid #E8E0FF" }}>Aucun avis — soyez le premier !</div>}
+      </div>
+    </div>
+  );
+}
+
+function ProductDetailPage({ product: p, onAdd, onBack, isFavorite, onToggleFav, user }) {
   const [qty, setQty]         = useState(1);
   const [mainImg, setMainImg] = useState(p.image);
   const [selColor, setColor]  = useState("");
@@ -483,6 +548,7 @@ function ProductDetailPage({ product: p, onAdd, onBack, isFavorite, onToggleFav 
               </div>
             </div>
           )}
+        <AvisSection produitId={p.id} user={user} />
         </div>
       </div>
     </div>
