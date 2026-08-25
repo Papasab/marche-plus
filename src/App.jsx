@@ -109,7 +109,7 @@ function AuthPage({ onAuth }) {
 }
 
 // ── Navbar ────────────────────────────────────────────────────────
-function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount, lang, setLang, onVendor, hasVendor }) {
+function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount, lang, setLang, onVendor, hasVendor, onChat }) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <nav style={{ background: "#fff", borderBottom: "1px solid #E8E0FF", padding: "0 20px", display: "flex", alignItems: "center", gap: 12, height: 64, position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 12px rgba(107,33,168,0.08)" }}>
@@ -128,6 +128,7 @@ function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount,
 
       {/* Actions desktop */}
       <div className="nav-user" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <button onClick={onChat} style={{ background: "#F5F2FF", color: "#6B21A8", border: "none", padding: "8px 14px", borderRadius: 99, fontWeight: 600, fontSize: 13 }}>💬 Chat</button>
         <button onClick={onVendor} style={{ background: hasVendor ? "#D1FAE5" : "linear-gradient(135deg, #6B21A8, #4C1D95)", color: hasVendor ? "#059669" : "#fff", border: "none", padding: "8px 14px", borderRadius: 99, fontSize: 13, fontWeight: 600 }}>
           🏪 {hasVendor ? "Ma boutique" : "Vendre"}
         </button>
@@ -1161,6 +1162,127 @@ function ProfilePage({ user, orders, favorites, onClose, setShowParrainage, supa
 }
 
 // ── Parrainage Page ───────────────────────────────────────────────
+// ── Chat Direct ───────────────────────────────────────────────────
+function ChatPage({ user, supabase, onBack }) {
+  const [vendeurs, setVendeurs] = useState([]);
+  const [selectedVendeur, setSelectedVendeur] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [newMsg, setNewMsg] = useState("");
+  const [loading, setLoading] = useState(true);
+  const messagesEndRef = useState(null);
+
+  useEffect(() => {
+    supabase.from("vendeurs").select("*").eq("statut", "approuve").then(({ data }) => {
+      setVendeurs(data || []);
+      setLoading(false);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!selectedVendeur) return;
+    loadMessages();
+    const interval = setInterval(loadMessages, 5000);
+    return () => clearInterval(interval);
+  }, [selectedVendeur]);
+
+  const loadMessages = async () => {
+    if (!selectedVendeur) return;
+    const { data } = await supabase.from("messages").select("*")
+      .or(`and(expediteur_id.eq.${user.id},destinataire_id.eq.${selectedVendeur.user_id}),and(expediteur_id.eq.${selectedVendeur.user_id},destinataire_id.eq.${user.id})`)
+      .order("created_at", { ascending: true });
+    setMessages(data || []);
+  };
+
+  const sendMessage = async () => {
+    if (!newMsg.trim() || !selectedVendeur) return;
+    await supabase.from("messages").insert({ expediteur_id: user.id, destinataire_id: selectedVendeur.user_id, contenu: newMsg, lu: false });
+    setNewMsg("");
+    loadMessages();
+  };
+
+  return (
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "20px 16px" }}>
+      <button onClick={onBack} style={{ background: "none", border: "none", color: "#6B21A8", fontSize: 14, cursor: "pointer", marginBottom: 16, fontWeight: 600 }}>← Retour</button>
+      <h2 style={{ fontWeight: 800, fontSize: 22, color: "#1A0A2E", marginBottom: 20 }}>💬 Chat avec les vendeurs</h2>
+
+      <div style={{ display: "grid", gridTemplateColumns: "260px 1fr", gap: 16, height: 500 }}>
+        {/* Liste vendeurs */}
+        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8E0FF", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+          <div style={{ padding: "14px 16px", borderBottom: "1px solid #E8E0FF", fontWeight: 700, fontSize: 14, color: "#6B21A8" }}>🏪 Vendeurs</div>
+          <div style={{ overflowY: "auto", flex: 1 }}>
+            {loading ? <div style={{ padding: 20, color: "#9CA3AF", textAlign: "center" }}>Chargement...</div> :
+              vendeurs.map(v => (
+                <div key={v.id} onClick={() => setSelectedVendeur(v)} style={{ padding: "12px 16px", borderBottom: "1px solid #F5F2FF", cursor: "pointer", background: selectedVendeur?.id === v.id ? "#EDE9FE" : "transparent", display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, #6B21A8, #D4AF37)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0, overflow: "hidden" }}>
+                    {v.logo ? <img src={v.logo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : "🏪"}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 13 }}>{v.nom_boutique}</div>
+                    <div style={{ fontSize: 11, color: "#9CA3AF" }}>📞 {v.whatsapp}</div>
+                  </div>
+                </div>
+              ))
+            }
+            {!loading && vendeurs.length === 0 && <div style={{ padding: 20, color: "#9CA3AF", textAlign: "center" }}>Aucun vendeur disponible</div>}
+          </div>
+        </div>
+
+        {/* Zone chat */}
+        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8E0FF", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+          {selectedVendeur ? (
+            <>
+              <div style={{ padding: "14px 16px", borderBottom: "1px solid #E8E0FF", display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, #6B21A8, #D4AF37)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, overflow: "hidden" }}>
+                  {selectedVendeur.logo ? <img src={selectedVendeur.logo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : "🏪"}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 15 }}>{selectedVendeur.nom_boutique}</div>
+                  <div style={{ fontSize: 11, color: "#9CA3AF" }}>En ligne</div>
+                </div>
+                <a href={`https://wa.me/${selectedVendeur.whatsapp}`} target="_blank" rel="noreferrer" style={{ marginLeft: "auto", background: "#25D366", color: "#fff", padding: "6px 12px", borderRadius: 99, fontSize: 12, textDecoration: "none", fontWeight: 600 }}>📱 WhatsApp</a>
+              </div>
+
+              <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+                {messages.length === 0 ? (
+                  <div style={{ textAlign: "center", margin: "auto", color: "#9CA3AF" }}>
+                    <div style={{ fontSize: 40, marginBottom: 8 }}>💬</div>
+                    <div>Commencez la conversation avec {selectedVendeur.nom_boutique}</div>
+                  </div>
+                ) : messages.map((m, i) => {
+                  const isMe = m.expediteur_id === user.id;
+                  return (
+                    <div key={i} style={{ display: "flex", justifyContent: isMe ? "flex-end" : "flex-start" }}>
+                      <div style={{ maxWidth: "70%", background: isMe ? "linear-gradient(135deg, #6B21A8, #4C1D95)" : "#F5F2FF", color: isMe ? "#fff" : "#1A0A2E", padding: "10px 14px", borderRadius: isMe ? "16px 16px 4px 16px" : "16px 16px 16px 4px", fontSize: 14, lineHeight: 1.5 }}>
+                        {m.contenu}
+                        <div style={{ fontSize: 10, opacity: 0.6, marginTop: 4, textAlign: "right" }}>
+                          {new Date(m.created_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ borderTop: "1px solid #E8E0FF", padding: "12px 16px", display: "flex", gap: 10 }}>
+                <input value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMessage()} placeholder="Écrire un message..."
+                  style={{ flex: 1, padding: "10px 16px", borderRadius: 99, border: "1.5px solid #E8E0FF", fontSize: 14, background: "#F5F2FF" }} />
+                <button onClick={sendMessage} style={{ background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "10px 20px", borderRadius: 99, fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
+                  Envoyer
+                </button>
+              </div>
+            </>
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "#9CA3AF", flexDirection: "column", gap: 12 }}>
+              <div style={{ fontSize: 48 }}>💬</div>
+              <div>Sélectionnez un vendeur pour commencer</div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ParrainagePage({ user, supabase, myParrainage, setMyParrainage, onBack }) {
   const [filleuls, setFilleuls] = useState([]);
   const [copied, setCopied]     = useState(false);
@@ -1231,6 +1353,7 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showProfile, setShowProfile]   = useState(false);
   const [showParrainage, setShowParrainage] = useState(false);
+  const [showChat, setShowChat] = useState(false);
   const [vendorPage, setVendorPage]     = useState(null);
   const [myVendor, setMyVendor]         = useState(null);
   const [myParrainage, setMyParrainage] = useState(null);
@@ -1354,7 +1477,7 @@ export default function App() {
       window.location.href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
     } else {
       window.location.href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
-    }
+    } 
 
     setCart([]); removePromo();
     fetchOrders();
@@ -1395,7 +1518,7 @@ export default function App() {
         onProfile={() => { setShowProfile(true); setSelectedProduct(null); setVendorPage(null); setShowParrainage(false); }}
         favCount={favorites.length} lang="FR" setLang={() => {}}
         onVendor={() => { setVendorPage(myVendor ? "dashboard" : "register"); setShowProfile(false); setSelectedProduct(null); }}
-        hasVendor={!!myVendor}
+        hasVendor={!!myVendor} onChat={() => { setShowChat(true); setShowProfile(false); setShowParrainage(false); setVendorPage(null); setSelectedProduct(null); }}
       />
 
       {/* Pages */}
@@ -1413,6 +1536,7 @@ export default function App() {
       {showProfile && !showParrainage && !vendorPage && <ProfilePage user={user} orders={orders} favorites={favorites} onClose={() => setShowProfile(false)} setShowParrainage={setShowParrainage} supabase={supabase} />}
 
       {/* Parrainage */}
+      {showChat && <ChatPage user={user} supabase={supabase} onBack={() => setShowChat(false)} />}
       {showParrainage && <ParrainagePage user={user} supabase={supabase} myParrainage={myParrainage} setMyParrainage={setMyParrainage} onBack={() => setShowParrainage(false)} />}
 
       {/* Vendor */}
