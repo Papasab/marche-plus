@@ -1393,7 +1393,7 @@ export default function App() {
       {/* Pages */}
       {!showProfile && !showParrainage && !vendorPage && page === "home"     && !selectedProduct && <HomePage products={products} onSelect={setSelectedProduct} onAdd={addToCart} isFavorite={isFavorite} onToggleFav={toggleFavorite} setPage={handlePageChange} />}
       {!showProfile && !showParrainage && !vendorPage && page === "shop"     && !selectedProduct && <ShopPage products={products} onAdd={addToCart} onSelect={setSelectedProduct} favorites={favorites} onToggleFav={toggleFavorite} isFavorite={isFavorite} />}
-      {!showProfile && !showParrainage && !vendorPage && selectedProduct     && <ProductDetailPage product={selectedProduct} onAdd={addToCart} onBack={() => setSelectedProduct(null)} isFavorite={isFavorite} onToggleFav={toggleFavorite} />}
+      {!showProfile && !showParrainage && !vendorPage && selectedProduct     && <ProductDetailPage product={selectedProduct} onAdd={addToCart} onBack={() => setSelectedProduct(null)} isFavorite={isFavorite} onToggleFav={toggleFavorite} user={user} />}
       {!showProfile && !showParrainage && !vendorPage && page === "cart"     && <CartPage cart={cart} onRemove={removeFromCart} onUpdateQty={updateQty} goToShop={() => handlePageChange("shop")} goToPayment={() => handlePageChange("payment")} promoCode={promoCode} promoDiscount={promoDiscount} promoLabel={promoLabel} onApplyPromo={applyPromo} onRemovePromo={removePromo} points={points} />}
       {!showProfile && !showParrainage && !vendorPage && page === "payment"  && <PaymentPage cart={cart} onConfirm={placeOrder} promoDiscount={promoDiscount} promoCode={promoCode} />}
       
