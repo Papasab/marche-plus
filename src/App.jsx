@@ -423,7 +423,7 @@ function AvisSection({ produitId, user }) {
             {[1,2,3,4,5].map(n => <button key={n} onClick={() => setNote(n)} style={{ width: 36, height: 36, borderRadius: "50%", background: n <= note ? "#D4AF37" : "#F5F2FF", color: n <= note ? "#fff" : "#9CA3AF", border: "none", fontSize: 16, cursor: "pointer" }}>★</button>)}
           </div>
           <textarea placeholder="Partagez votre expérience..." value={comment} onChange={e => setComment(e.target.value)} rows={3}
-            style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid #E8E0FF", fontSize: 14, fontFamily: "inherit", marginBottom: 12, background: "#F5F2FF" }} />
+            style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid #E8E0FF", fontSize: 14, fontFamily: "inherit", marginBottom: 12, background: "#F5F2FF", resize: "vertical", position: "relative", zIndex: 10 }} />
           <button onClick={saveAvis} disabled={saving} style={{ background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "10px 24px", borderRadius: 99, fontWeight: 700, fontSize: 14 }}>
             {saving ? "Envoi..." : "✓ Publier mon avis"}
           </button>
