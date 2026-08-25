@@ -1338,7 +1338,7 @@ export default function App() {
     setPoints(p => p + Math.floor(total / 1000));
 
     // WhatsApp
-    const msg = `🛍 *Nouvelle commande Marché+*\n\n📋 *${orderId}*\n👤 ${form.name}\n📞 ${form.phone}\n📍 ${form.address}\n💳 ${methodLabel}\n\n${cart.map(i => `• ${i.name} x${i.qty} — ${fmt(i.price)}`).join("\n")}\n\n💰 *Total : ${fmt(total)}*${promoCode ? `\n🏷 Code : ${promoCode}` : ""}`;
+    const msg = `🛍 *NOUVELLE COMMANDE — Marché+*\n━━━━━━━━━━━━━━━━━━━━\n\n📋 *Commande :* ${orderId}\n📅 *Date :* ${new Date().toLocaleDateString("fr-FR")}\n\n👤 *Client :* ${form.name}\n📞 *Téléphone :* ${form.phone}\n📍 *Adresse :* ${form.address}\n💳 *Paiement :* ${methodLabel}\n\n🛒 *Produits commandés :*\n${cart.map(i => `• ${i.name}${i.color ? ` (${i.color})` : ""}${i.size ? ` - Taille: ${i.size}` : ""} x${i.qty} — ${fmt(i.price * i.qty)}`).join("\n")}\n\n━━━━━━━━━━━━━━━━━━━━\n💰 *TOTAL : ${fmt(total)}*${promoCode ? `\n🏷 Code promo : ${promoCode} (-${promoDiscount}%)` : ""}\n\n🔍 *Suivi :* https://marche-plus.vercel.app/?suivi=${orderId}\n\n✅ Merci pour votre commande ! Nous vous contacterons bientôt pour confirmer la livraison. 🙏`;
 
     const vendeurItems = cart.filter(i => i.vendeur_id);
     if (vendeurItems.length > 0) {
