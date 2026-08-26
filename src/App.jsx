@@ -172,21 +172,50 @@ function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount,
 // ── Bottom Navigation (mobile) ────────────────────────────────────
 function BottomNav({ page, setPage, cartCount, favCount, onProfile }) {
   const items = [
-    { key: "home", label: "Accueil", icon: "🏠" },
-    { key: "shop", label: "Catégories", icon: "🔲" },
-    { key: "cart", label: "Panier", icon: "🛒", badge: cartCount },
-    { key: "favorites", label: "Favoris", icon: "❤️", badge: favCount },
-    { key: "profile", label: "Profil", icon: "👤" },
+    { key: "home", label: "Accueil", icon: (active) => (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "#6B21A8" : "none"} stroke={active ? "#6B21A8" : "#9CA3AF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    )},
+    { key: "shop", label: "Catalogue", icon: (active) => (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#6B21A8" : "#9CA3AF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+      </svg>
+    )},
+    { key: "cart", label: "Panier", icon: (active) => (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#6B21A8" : "#9CA3AF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 001.98 1.61h9.72a2 2 0 001.98-1.61L23 6H6"/>
+      </svg>
+    ), badge: cartCount },
+    { key: "favorites", label: "Favoris", icon: (active) => (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "#6B21A8" : "none"} stroke={active ? "#6B21A8" : "#9CA3AF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+      </svg>
+    ), badge: favCount },
+    { key: "profile", label: "Compte", icon: (active) => (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#6B21A8" : "#9CA3AF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+      </svg>
+    )},
   ];
   return (
-    <div className="bottom-nav" style={{ display: "flex", justifyContent: "space-around", alignItems: "center" }}>
-      {items.map(item => (
-        <button key={item.key} onClick={() => item.key === "profile" ? onProfile() : setPage(item.key)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, background: "none", border: "none", color: page === item.key ? "#6B21A8" : "#9CA3AF", position: "relative", padding: "4px 8px" }}>
-          <span style={{ fontSize: 20 }}>{item.icon}</span>
-          {item.badge > 0 && <span style={{ position: "absolute", top: 0, right: 0, background: "#D4AF37", color: "#1A0A2E", width: 16, height: 16, borderRadius: "50%", fontSize: 9, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>{item.badge}</span>}
-          <span style={{ fontSize: 10, fontWeight: page === item.key ? 700 : 400 }}>{item.label}</span>
-        </button>
-      ))}
+    <div className="bottom-nav" style={{ display: "flex", justifyContent: "space-around", alignItems: "center", padding: "8px 16px 16px", background: "rgba(255,255,255,0.85)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(107,33,168,0.08)" }}>
+      {items.map(item => {
+        const active = page === item.key || (item.key === "profile" && false);
+        return (
+          <button key={item.key} onClick={() => item.key === "profile" ? onProfile() : setPage(item.key)}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", position: "relative", padding: "6px 12px", borderRadius: 14, transition: "all .2s" }}>
+            <div style={{ position: "relative" }}>
+              {item.icon(active)}
+              {item.badge > 0 && (
+                <span style={{ position: "absolute", top: -4, right: -6, background: "#D4AF37", color: "#1A0A2E", width: 18, height: 18, borderRadius: "50%", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>{item.badge}</span>
+              )}
+            </div>
+            <span style={{ fontSize: 10, fontWeight: active ? 700 : 400, color: active ? "#6B21A8" : "#9CA3AF" }}>{item.label}</span>
+            {active && <div style={{ position: "absolute", bottom: -2, width: 20, height: 3, background: "#6B21A8", borderRadius: 99 }} />}
+          </button>
+        );
+      })}
     </div>
   );
 }
