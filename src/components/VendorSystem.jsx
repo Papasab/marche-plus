@@ -492,10 +492,35 @@ export function VendorDashboard({ supabase, vendor, onBack, user }) {
                         <div style={{ fontSize: 11, color: "#059669", fontWeight: 600 }}>Net: {fmt(o.total - Math.round(o.total * COMMISSION_RATE / 100))}</div>
                       </div>
                     </div>
-                    <button onClick={() => window.open(`https://wa.me/${o.client_telephone?.replace(/\D/g,"")}?text=${encodeURIComponent(`Bonjour ${o.client_nom}, merci pour votre commande ${o.id} sur ${vendor.nom_boutique} ! 🛍`)}`, "_blank")}
-                      style={{ marginTop: 12, background: "#25D366", color: "#fff", border: "none", padding: "7px 16px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
-                      📱 Contacter le client
-                    </button>
+                    <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      {/* Changer statut */}
+                      <select value={o.status} onChange={async e => {
+                        await supabase.from("commandes").update({ status: e.target.value }).eq("id", o.id);
+                        loadData();
+                        // Notifier le client par WhatsApp
+                        const statusMsg = {
+                          "En transit": `Bonjour ${o.client_nom} ! 🚚 Votre commande *${o.id}* est en cours de livraison. Vous recevrez votre colis bientôt ! — ${vendor.nom_boutique}`,
+                          "Livré": `Bonjour ${o.client_nom} ! ✅ Votre commande *${o.id}* a été livrée avec succès. Merci pour votre confiance ! — ${vendor.nom_boutique}`,
+                          "Annulé": `Bonjour ${o.client_nom} ! ❌ Votre commande *${o.id}* a été annulée. Contactez-nous pour plus d'informations. — ${vendor.nom_boutique}`,
+                        }[e.target.value];
+                        if (statusMsg) window.open(`https://wa.me/${o.client_telephone?.replace(/\D/g,"")}?text=${encodeURIComponent(statusMsg)}`, "_blank");
+                      }} style={{ padding: "6px 12px", borderRadius: 8, border: "1.5px solid #E8E0FF", fontSize: 12, background: "#F5F2FF", cursor: "pointer" }}>
+                        <option value="En cours">En cours</option>
+                        <option value="En transit">En transit 🚚</option>
+                        <option value="Livré">Livré ✅</option>
+                        <option value="Annulé">Annulé ❌</option>
+                      </select>
+                      {/* Contacter client */}
+                      <button onClick={() => window.open(`https://wa.me/${o.client_telephone?.replace(/\D/g,"")}?text=${encodeURIComponent(`Bonjour ${o.client_nom}, merci pour votre commande ${o.id} sur ${vendor.nom_boutique} ! 🛍`)}`, "_blank")}
+                        style={{ background: "#25D366", color: "#fff", border: "none", padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                        📱 Contacter
+                      </button>
+                      {/* Envoyer reçu */}
+                      <button onClick={() => window.open(`https://wa.me/${o.client_telephone?.replace(/\D/g,"")}?text=${encodeURIComponent(`🧾 *REÇU DE COMMANDE — ${vendor.nom_boutique}*\n\n📋 Commande : ${o.id}\n📅 Date : ${o.date}\n👤 Client : ${o.client_nom}\n📍 Adresse : ${o.client_adresse}\n💳 Paiement : ${o.paiement}\n\n💰 *Total : ${new Intl.NumberFormat("fr-FR").format(o.total)} FCFA*\n\nMerci pour votre achat ! 🙏`)}`, "_blank")}
+                        style={{ background: "#6B21A8", color: "#fff", border: "none", padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                        🧾 Envoyer reçu
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
