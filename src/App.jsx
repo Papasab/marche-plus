@@ -161,6 +161,7 @@ function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount,
           ))}
           <button onClick={() => { onVendor(); setMenuOpen(false); }} style={{ background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "12px 16px", borderRadius: 10, fontWeight: 700, fontSize: 15, textAlign: "left" }}>🏪 {hasVendor ? "Ma boutique" : "Vendre"}</button>
           <button onClick={() => { onProfile(); setMenuOpen(false); }} style={{ background: "#F5F2FF", color: "#6B21A8", border: "none", padding: "12px 16px", borderRadius: 10, fontWeight: 600, fontSize: 15, textAlign: "left" }}>👤 Mon profil</button>
+          <button onClick={() => { onChat(); setMenuOpen(false); }} style={{ background: "#F5F2FF", color: "#6B21A8", border: "none", padding: "12px 16px", borderRadius: 10, fontWeight: 600, fontSize: 15, textAlign: "left" }}>💬 Chat vendeurs</button>
           <button onClick={() => { onLogout(); setMenuOpen(false); }} style={{ background: "none", border: "none", color: "#DC2626", padding: "12px 16px", fontSize: 15, textAlign: "left" }}>🚪 Déconnexion</button>
         </div>
       )}
