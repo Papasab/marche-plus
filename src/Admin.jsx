@@ -281,7 +281,11 @@ function Dashboard({ onLogout }) {
     { key: "messages",  label: "Messages",        icon: "💬", badge: unreadMsgs },
     { key: "users",     label: "Utilisateurs",    icon: "👥" },
     { key: "faq",       label: "FAQ",             icon: "❓" },
-    { key: "rapport",  label: "Rapport mensuel",  icon: "??" },
+    { key: "rapport",   label: "Rapport mensuel", icon: "📈" },
+    { key: "livreurs",  label: "Livreurs",        icon: "🚚" },
+    { key: "promos",    label: "Codes promo",     icon: "🏷" },
+    { key: "flashsale", label: "Flash Sales",     icon: "⚡" },
+    { key: "annonces",  label: "Annonces",        icon: "📢" },
   ];
 
   const Sidebar = () => (
@@ -783,7 +787,6 @@ function Dashboard({ onLogout }) {
           </>
         )}
 
-        {tab === "rapport" && (<div style={{ maxWidth: 900, margin: "0 auto" }}><h2 style={{ fontWeight: 800, fontSize: 22, color: "#1A0A2E", marginBottom: 20 }}>?? Rapport mensuel</h2><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px,1fr))", gap: 14, marginBottom: 24 }}>{[{ label: "CA total", value: fmt(orders.reduce((s,o)=>s+o.total,0)), icon: "??", color: "#6B21A8" },{ label: "Commandes", value: orders.length, icon: "??", color: "#D4AF37" },{ label: "Clients", value: users.length, icon: "??", color: "#059669" },{ label: "Vendeurs actifs", value: vendors.filter(v=>v.statut==="approuve").length, icon: "??", color: "#1a56db" },{ label: "Livrees", value: orders.filter(o=>o.status==="Livree").length, icon: "?", color: "#059669" },{ label: "Annulees", value: orders.filter(o=>o.status==="Annule").length, icon: "?", color: "#DC2626" }].map(s=>(<div key={s.label} style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8E0FF", padding: "18px 16px" }}><div style={{ fontSize: 26, marginBottom: 8 }}>{s.icon}</div><div style={{ fontWeight: 900, fontSize: 20, color: s.color }}>{s.value}</div><div style={{ fontSize: 12, color: "#9CA3AF" }}>{s.label}</div></div>))}</div></div>)}
 {tab === "faq" && (
           <>
             <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 20, color: "#1A0A2E" }}>❓ FAQ / Contact</h2>
