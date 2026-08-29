@@ -253,7 +253,7 @@ function AnnonceManager({ supabase }) {
   );
 }
 
-function AdminLogin({ onLogin }) {({ onLogin }) {
+function AdminLogin({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [adminPwd, setAdminPwd] = useState("");
