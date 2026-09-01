@@ -257,10 +257,30 @@ function ProductCard({ p, onSelect, onAdd, isFavorite, onToggleFav }) {
 }
 
 // ── Home Page ─────────────────────────────────────────────────────
-function HomePage({ products, onSelect, onAdd, isFavorite, onToggleFav, setPage }) {
+function HomePage({ products, onSelect, onAdd, isFavorite, onToggleFav, setPage, annonces, flashSales, promos }) {
   const [slide, setSlide] = useState(0);
+  const [timers, setTimers] = useState({});
   const featured = products.slice(0, 4);
   const newArrivals = products.slice(4, 8);
+  const onSale = products.filter(p => p.reduction > 0).slice(0, 4);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      const t = {};
+      (flashSales || []).forEach(s => {
+        const diff = new Date(s.date_fin) - now;
+        if (diff > 0) {
+          const h = Math.floor(diff / 3600000);
+          const m = Math.floor((diff % 3600000) / 60000);
+          const sec = Math.floor((diff % 60000) / 1000);
+          t[s.id] = `${h}h ${m}m ${sec}s`;
+        } else t[s.id] = "Terminé";
+      });
+      setTimers(t);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [flashSales]);
 
   const SLIDES = [
     { title: "NOUVEAUTÉS", sub: "Chaque jour de nouveaux produits !", cta: "Découvrir", bg: "linear-gradient(135deg, #4C1D95, #6B21A8)", img: "🛍" },
@@ -275,6 +295,43 @@ function HomePage({ products, onSelect, onAdd, isFavorite, onToggleFav, setPage 
 
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "16px 16px 40px" }}>
+
+      {/* Annonces */}
+      {(annonces || []).filter(a => a.actif).map(a => (
+        <div key={a.id} style={{ background: a.couleur || "#6B21A8", color: "#fff", padding: "10px 20px", borderRadius: 12, marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 14, fontWeight: 600 }}>
+          <span>📢 {a.message}</span>
+        </div>
+      ))}
+
+      {/* Flash Sales */}
+      {(flashSales || []).length > 0 && (
+        <div style={{ background: "linear-gradient(135deg, #DC2626, #b91c1c)", borderRadius: 16, padding: "16px 20px", marginBottom: 20, color: "#fff" }}>
+          <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 12 }}>⚡ FLASH SALES — Offres limitées !</div>
+          <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 4 }}>
+            {(flashSales || []).map(s => (
+              <div key={s.id} onClick={() => onSelect(s.produits)} style={{ background: "rgba(255,255,255,0.15)", borderRadius: 12, padding: "12px", minWidth: 180, cursor: "pointer", flexShrink: 0 }}>
+                {s.produits?.image && <img src={s.produits.image} alt="" style={{ width: "100%", height: 100, objectFit: "cover", borderRadius: 8, marginBottom: 8 }} />}
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{s.produits?.name}</div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontWeight: 900, fontSize: 15, color: "#D4AF37" }}>{new Intl.NumberFormat("fr-FR").format(Math.round((s.produits?.price || 0) * (1 - s.reduction/100)))} FCFA</span>
+                  <span style={{ background: "#fff", color: "#DC2626", fontSize: 10, fontWeight: 800, padding: "2px 6px", borderRadius: 99 }}>-{s.reduction}%</span>
+                </div>
+                <div style={{ fontSize: 11, opacity: 0.8, marginTop: 4 }}>⏱ {timers[s.id] || "..."}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Codes promo */}
+      {(promos || []).filter(p => p.actif).length > 0 && (
+        <div style={{ background: "linear-gradient(135deg, #D4AF37, #B8960C)", borderRadius: 12, padding: "12px 20px", marginBottom: 16, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <span style={{ fontWeight: 700, fontSize: 14, color: "#1A0A2E" }}>🏷 Codes promo actifs :</span>
+          {(promos || []).filter(p => p.actif).map(p => (
+            <span key={p.id} style={{ background: "#1A0A2E", color: "#D4AF37", fontSize: 13, fontWeight: 800, padding: "4px 12px", borderRadius: 99 }}>{p.code} — {p.reduction}%</span>
+          ))}
+        </div>
+      )}
 
       {/* Bannière principale */}
       <div style={{ borderRadius: 20, overflow: "hidden", marginBottom: 20, position: "relative", height: 180 }}>
@@ -1383,6 +1440,9 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showProfile, setShowProfile]   = useState(false);
   const [showParrainage, setShowParrainage] = useState(false);
+  const [annonces, setAnnonces] = useState([]);
+  const [flashSales, setFlashSales] = useState([]);
+  const [promos, setPromos] = useState([]);
   const [showChat, setShowChat] = useState(false);
   const [vendorPage, setVendorPage]     = useState(null);
   const [myVendor, setMyVendor]         = useState(null);
@@ -1432,7 +1492,13 @@ export default function App() {
     setLoadingOrders(false);
   };
 
-  useEffect(() => { fetchProducts(); }, []);
+  useEffect(() => { 
+    fetchProducts(); 
+    // Charger annonces, flash sales et codes promo
+    supabase.from("annonces").select("*").eq("actif", true).then(({ data }) => setAnnonces(data || []));
+    supabase.from("flash_sales").select("*, produits(name, image, price)").eq("actif", true).then(({ data }) => setFlashSales(data || []));
+    supabase.from("codes_promo").select("*").eq("actif", true).then(({ data }) => setPromos(data || []));
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -1552,7 +1618,7 @@ export default function App() {
       />
 
       {/* Pages */}
-      {!showProfile && !showParrainage && !vendorPage && page === "home"     && !selectedProduct && <HomePage products={products} onSelect={setSelectedProduct} onAdd={addToCart} isFavorite={isFavorite} onToggleFav={toggleFavorite} setPage={handlePageChange} />}
+      {!showProfile && !showParrainage && !vendorPage && page === "home"     && !selectedProduct && page === "home" && !showProfile && !vendorPage && !selectedProduct && <HomePage products={products} annonces={annonces} flashSales={flashSales} promos={promos} onSelect={setSelectedProduct} onAdd={addToCart} isFavorite={isFavorite} onToggleFav={toggleFavorite} setPage={handlePageChange} />}
       {!showProfile && !showParrainage && !vendorPage && page === "shop"     && !selectedProduct && <ShopPage products={products} onAdd={addToCart} onSelect={setSelectedProduct} favorites={favorites} onToggleFav={toggleFavorite} isFavorite={isFavorite} />}
       {!showProfile && !showParrainage && !vendorPage && selectedProduct     && <ProductDetailPage product={selectedProduct} onAdd={addToCart} onBack={() => setSelectedProduct(null)} isFavorite={isFavorite} onToggleFav={toggleFavorite} user={user} />}
       {!showProfile && !showParrainage && !vendorPage && page === "cart"     && <CartPage cart={cart} onRemove={removeFromCart} onUpdateQty={updateQty} goToShop={() => handlePageChange("shop")} goToPayment={() => handlePageChange("payment")} promoCode={promoCode} promoDiscount={promoDiscount} promoLabel={promoLabel} onApplyPromo={applyPromo} onRemovePromo={removePromo} points={points} />}
