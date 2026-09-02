@@ -54,6 +54,195 @@ function ConditionsPage({ onBack }) {
 
 // ── Auth ──────────────────────────────────────────────────────────
 function AuthPage({ onAuth }) {
+  const [screen, setScreen] = useState("welcome"); // welcome | login | signup
+  const [role, setRole]     = useState("acheteur"); // acheteur | vendeur
+  const [email, setEmail]   = useState("");
+  const [password, setPass] = useState("");
+  const [nom, setNom]       = useState("");
+  const [phone, setPhone]   = useState("");
+  const [confirmPass, setConfirmPass] = useState("");
+  const [showPass, setShowPass]       = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState("");
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir";
+
+  const handleAuth = async () => {
+    setError(""); setLoading(true);
+    if (screen === "signup" && password !== confirmPass) { setError("Les mots de passe ne correspondent pas"); setLoading(false); return; }
+    if (screen === "signup" && !acceptTerms) { setError("Veuillez accepter les conditions d'utilisation"); setLoading(false); return; }
+    const fn = screen === "login"
+      ? supabase.auth.signInWithPassword({ email, password })
+      : supabase.auth.signUp({ email, password, options: { data: { nom, phone, role } } });
+    const { data, error: e } = await fn;
+    setLoading(false);
+    if (e) { setError(e.message); return; }
+    if (data.user) onAuth(data.user);
+  };
+
+  // ── Écran de bienvenue ──────────────────────────────────────────
+  if (screen === "welcome") return (
+    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #3b0764 0%, #6B21A8 50%, #4C1D95 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", padding: "48px 24px 32px", overflow: "hidden", position: "relative" }}>
+      {/* Cercles décoratifs */}
+      <div style={{ position: "absolute", top: -60, right: -60, width: 200, height: 200, borderRadius: "50%", background: "rgba(212,175,55,0.15)" }} />
+      <div style={{ position: "absolute", bottom: 100, left: -40, width: 150, height: 150, borderRadius: "50%", background: "rgba(212,175,55,0.1)" }} />
+
+      {/* Logo et titre */}
+      <div style={{ textAlign: "center", zIndex: 1 }}>
+        <div style={{ width: 80, height: 80, borderRadius: 24, background: "linear-gradient(135deg, #D4AF37, #B8960C)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, margin: "0 auto 20px", boxShadow: "0 8px 32px rgba(212,175,55,0.4)" }}>🛍</div>
+        <h1 style={{ fontWeight: 900, fontSize: 36, color: "#fff", letterSpacing: "-1px", marginBottom: 8 }}>Marché<span style={{ color: "#D4AF37" }}>+</span></h1>
+        <p style={{ fontWeight: 700, fontSize: 16, color: "rgba(255,255,255,0.9)", marginBottom: 8 }}>Achetez. Vendez. Découvrez.</p>
+        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", maxWidth: 280, lineHeight: 1.6 }}>La marketplace simple, sécurisée et rapide pour tous.</p>
+      </div>
+
+      {/* Mockup téléphone */}
+      <div style={{ zIndex: 1, margin: "20px 0" }}>
+        <div style={{ width: 200, height: 300, background: "rgba(255,255,255,0.1)", borderRadius: 28, border: "2px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(10px)", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
+          <div style={{ textAlign: "center", color: "#fff" }}>
+            <div style={{ fontSize: 48, marginBottom: 8 }}>🛍</div>
+            <div style={{ fontWeight: 700, fontSize: 14 }}>Marché+</div>
+            <div style={{ fontSize: 11, opacity: 0.7, marginTop: 4 }}>Offres du jour</div>
+            <div style={{ background: "#D4AF37", color: "#1A0A2E", fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 99, marginTop: 8, display: "inline-block" }}>Jusqu'à -40%</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Avantages */}
+      <div style={{ display: "flex", gap: 20, marginBottom: 24, zIndex: 1 }}>
+        {[{ icon: "🛡", label: "Produits\nde qualité" }, { icon: "🔒", label: "Paiement\nsécurisé" }, { icon: "🚚", label: "Livraison\nrapide" }].map(a => (
+          <div key={a.label} style={{ textAlign: "center", color: "rgba(255,255,255,0.8)" }}>
+            <div style={{ fontSize: 24, marginBottom: 4 }}>{a.icon}</div>
+            <div style={{ fontSize: 10, lineHeight: 1.4, whiteSpace: "pre" }}>{a.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Boutons */}
+      <div style={{ width: "100%", maxWidth: 360, zIndex: 1 }}>
+        <button onClick={() => setScreen("login")} style={{ width: "100%", background: "#D4AF37", color: "#1A0A2E", border: "none", padding: "16px", borderRadius: 14, fontWeight: 800, fontSize: 16, marginBottom: 12, cursor: "pointer", boxShadow: "0 8px 24px rgba(212,175,55,0.4)" }}>
+          👤 Se connecter
+        </button>
+        <button onClick={() => setScreen("signup")} style={{ width: "100%", background: "rgba(255,255,255,0.1)", color: "#fff", border: "2px solid rgba(255,255,255,0.3)", padding: "16px", borderRadius: 14, fontWeight: 700, fontSize: 16, marginBottom: 20, cursor: "pointer", backdropFilter: "blur(10px)" }}>
+          Créer un compte
+        </button>
+        <div style={{ textAlign: "center", color: "rgba(255,255,255,0.5)", fontSize: 12, marginBottom: 16 }}>ou continuer avec</div>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+          {[{ icon: "G", bg: "#fff", color: "#333" }, { icon: "f", bg: "#1877F2", color: "#fff" }, { icon: "🍎", bg: "#000", color: "#fff" }].map((s, i) => (
+            <button key={i} style={{ width: 56, height: 56, borderRadius: 14, background: s.bg, color: s.color, border: "none", fontSize: 20, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}>{s.icon}</button>
+          ))}
+        </div>
+        <p style={{ textAlign: "center", color: "rgba(255,255,255,0.4)", fontSize: 11, marginTop: 20 }}>
+          En continuant, vous acceptez nos <span style={{ color: "#D4AF37", cursor: "pointer" }}>Conditions d'utilisation</span> et <span style={{ color: "#D4AF37", cursor: "pointer" }}>Politique de confidentialité</span>
+        </p>
+      </div>
+    </div>
+  );
+
+  // ── Écran connexion/inscription ─────────────────────────────────
+  return (
+    <div style={{ minHeight: "100vh", background: "#F5F2FF", display: "flex", flexDirection: "column" }}>
+      {/* Header */}
+      <div style={{ padding: "16px 20px", display: "flex", alignItems: "center", gap: 12 }}>
+        <button onClick={() => setScreen("welcome")} style={{ width: 36, height: 36, borderRadius: "50%", background: "#fff", border: "none", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>←</button>
+        <div style={{ marginLeft: "auto", background: "#fff", padding: "6px 12px", borderRadius: 99, fontSize: 13, fontWeight: 600, color: "#6B21A8" }}>FR 🇫🇷</div>
+      </div>
+
+      <div style={{ flex: 1, padding: "0 24px 32px", maxWidth: 480, margin: "0 auto", width: "100%" }}>
+        {/* Logo */}
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
+          <div style={{ width: 64, height: 64, borderRadius: 20, background: "linear-gradient(135deg, #6B21A8, #D4AF37)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, margin: "0 auto 12px" }}>🛍</div>
+          <h2 style={{ fontWeight: 900, fontSize: 24, color: "#1A0A2E", marginBottom: 4 }}>{screen === "login" ? "Bon retour !" : "Créer un compte"}</h2>
+          <p style={{ fontSize: 13, color: "#9CA3AF" }}>{screen === "login" ? "Connectez-vous à votre compte" : "Rejoignez des milliers d'utilisateurs sur Marché+"}</p>
+        </div>
+
+        {/* Choix rôle (inscription seulement) */}
+        {screen === "signup" && (
+          <div style={{ display: "flex", gap: 8, marginBottom: 20, background: "#fff", borderRadius: 12, padding: 4 }}>
+            {["acheteur", "vendeur"].map(r => (
+              <button key={r} onClick={() => setRole(r)} style={{ flex: 1, padding: "10px", borderRadius: 10, border: "none", background: role === r ? "#6B21A8" : "transparent", color: role === r ? "#fff" : "#9CA3AF", fontWeight: role === r ? 700 : 500, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                {r === "acheteur" ? "🛒" : "🏪"} {r === "acheteur" ? "Acheteur" : "Vendeur"}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Formulaire */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {screen === "signup" && (
+            <div style={{ background: "#fff", borderRadius: 14, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+              <span style={{ fontSize: 18, color: "#9CA3AF" }}>👤</span>
+              <input placeholder="Entrez votre nom complet" value={nom} onChange={e => setNom(e.target.value)}
+                style={{ flex: 1, border: "none", outline: "none", fontSize: 15, background: "transparent", color: "#1A0A2E" }} />
+            </div>
+          )}
+
+          <div style={{ background: "#fff", borderRadius: 14, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+            <span style={{ fontSize: 18, color: "#9CA3AF" }}>✉️</span>
+            <input type="email" placeholder="Entrez votre email" value={email} onChange={e => setEmail(e.target.value)}
+              style={{ flex: 1, border: "none", outline: "none", fontSize: 15, background: "transparent", color: "#1A0A2E" }} />
+          </div>
+
+          {screen === "signup" && (
+            <div style={{ background: "#fff", borderRadius: 14, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+              <span style={{ fontSize: 14, color: "#9CA3AF", fontWeight: 600 }}>🇲🇱 +223</span>
+              <input type="tel" placeholder="70 12 34 56" value={phone} onChange={e => setPhone(e.target.value)}
+                style={{ flex: 1, border: "none", outline: "none", fontSize: 15, background: "transparent", color: "#1A0A2E" }} />
+            </div>
+          )}
+
+          <div style={{ background: "#fff", borderRadius: 14, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+            <span style={{ fontSize: 18, color: "#9CA3AF" }}>🔒</span>
+            <input type={showPass ? "text" : "password"} placeholder={screen === "signup" ? "Créez un mot de passe" : "Votre mot de passe"} value={password} onChange={e => setPass(e.target.value)}
+              style={{ flex: 1, border: "none", outline: "none", fontSize: 15, background: "transparent", color: "#1A0A2E" }} />
+            <button onClick={() => setShowPass(!showPass)} style={{ background: "none", border: "none", fontSize: 16, cursor: "pointer", color: "#9CA3AF" }}>{showPass ? "🙈" : "👁"}</button>
+          </div>
+
+          {screen === "signup" && (
+            <div style={{ background: "#fff", borderRadius: 14, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+              <span style={{ fontSize: 18, color: "#9CA3AF" }}>🔒</span>
+              <input type={showPass ? "text" : "password"} placeholder="Confirmez votre mot de passe" value={confirmPass} onChange={e => setConfirmPass(e.target.value)}
+                style={{ flex: 1, border: "none", outline: "none", fontSize: 15, background: "transparent", color: "#1A0A2E" }} />
+            </div>
+          )}
+
+          {screen === "signup" && (
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+              <input type="checkbox" checked={acceptTerms} onChange={e => setAcceptTerms(e.target.checked)} style={{ marginTop: 2, accentColor: "#6B21A8" }} />
+              <span style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.5 }}>
+                J'accepte les <span style={{ color: "#6B21A8", fontWeight: 600, cursor: "pointer" }}>Conditions d'utilisation</span> et la <span style={{ color: "#6B21A8", fontWeight: 600, cursor: "pointer" }}>Politique de confidentialité</span>
+              </span>
+            </div>
+          )}
+
+          {error && <div style={{ background: "#FEE2E2", color: "#DC2626", padding: "10px 14px", borderRadius: 10, fontSize: 13 }}>✗ {error}</div>}
+
+          <button onClick={handleAuth} disabled={loading} style={{ width: "100%", background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "16px", borderRadius: 14, fontWeight: 800, fontSize: 16, cursor: "pointer", opacity: loading ? 0.7 : 1, boxShadow: "0 8px 24px rgba(107,33,168,0.35)", marginTop: 4 }}>
+            {loading ? "Chargement..." : screen === "login" ? "Se connecter" : "Créer mon compte"}
+          </button>
+
+          <div style={{ textAlign: "center", color: "#9CA3AF", fontSize: 13, margin: "4px 0" }}>ou continuer avec</div>
+
+          <div style={{ display: "flex", gap: 12 }}>
+            {[{ icon: "G", bg: "#fff", color: "#333", label: "Google" }, { icon: "f", bg: "#1877F2", color: "#fff", label: "Facebook" }, { icon: "🍎", bg: "#000", color: "#fff", label: "Apple" }].map((s, i) => (
+              <button key={i} style={{ flex: 1, height: 48, borderRadius: 12, background: s.bg, color: s.color, border: "1px solid #E5E7EB", fontSize: 18, fontWeight: 900, cursor: "pointer" }}>{s.icon}</button>
+            ))}
+          </div>
+
+          <p style={{ textAlign: "center", fontSize: 14, color: "#9CA3AF", marginTop: 8 }}>
+            {screen === "login" ? "Pas encore de compte ? " : "Vous avez déjà un compte ? "}
+            <span onClick={() => { setScreen(screen === "login" ? "signup" : "login"); setError(""); }} style={{ color: "#6B21A8", fontWeight: 700, cursor: "pointer" }}>
+              {screen === "login" ? "S'inscrire" : "Se connecter"}
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AuthPage_OLD({ onAuth }) {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir";
   const emoji = hour < 12 ? "🌅" : hour < 18 ? "☀️" : "🌙";
