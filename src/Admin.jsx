@@ -1409,7 +1409,7 @@ ${month}
                     <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
                       <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#FF6B00", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>🏪</div>
                       <div>
-                        <div style={{ fontWeight: 700, fontSize: 15 }}>{v.nom_boutique}</div>
+                       
                         <div style={{ fontSize: 12, color: "#888" }}>📞 {v.whatsapp}</div>
                       </div>
                     </div>

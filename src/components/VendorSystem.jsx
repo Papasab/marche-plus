@@ -252,6 +252,9 @@ export function VendorDashboard({ supabase, vendor, onBack, user }) {
           <button onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Visitez ma boutique sur Marché+ : ${shopUrl}`)}`, "_blank")} style={{ background: "#25D366", border: "none", color: "#fff", padding: "5px 12px", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", flexShrink: 0 }}>
             WhatsApp
           </button>
+          <button onClick={() => window.open(`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(shopUrl)}`, "_blank")} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", padding: "5px 12px", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", flexShrink: 0 }}>
+            📱 QR Code
+          </button>
         </div>
       </div>
 
@@ -646,7 +649,10 @@ export function VendorShopPage({ supabase, slug, onAdd, onBack }) {
         <div style={{ width: 80, height: 80, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, margin: "0 auto 16px", overflow: "hidden", border: "3px solid rgba(255,255,255,0.4)" }}>
           {vendor.logo ? <img src={vendor.logo} alt="logo" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : "🏪"}
         </div>
-        <h1 style={{ fontWeight: 900, fontSize: 26, marginBottom: 8 }}>{vendor.nom_boutique}</h1>
+        <h1 style={{ fontWeight: 900, fontSize: 26, marginBottom: 8, display: "flex", alignItems: "center", gap: 10 }}>
+          {vendor.nom_boutique}
+          {vendor.verifie && <span style={{ background: "#059669", color: "#fff", fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 99 }}>✅ Vérifié</span>}
+        </h1>
         {vendor.description && <p style={{ fontSize: 14, opacity: 0.85, maxWidth: 400, margin: "0 auto 16px" }}>{vendor.description}</p>}
         <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
           <span style={{ background: "rgba(255,255,255,0.15)", padding: "5px 14px", borderRadius: 99, fontSize: 12 }}>🛍 {products.length} produits</span>
