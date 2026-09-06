@@ -1667,12 +1667,39 @@ export default function App() {
 
   return (
     <>
-      <Navbar page={page} setPage={handlePageChange} cartCount={cartCount} user={user}
-        onLogout={() => { supabase.auth.signOut(); setUser(null); }}
-        onProfile={() => { setShowProfile(true); setSelectedProduct(null); setVendorPage(null); setShowParrainage(false); }}
-        favCount={favorites.length} lang="FR" setLang={() => {}}
-        onVendor={() => { setVendorPage(myVendor ? "dashboard" : "register"); setShowProfile(false); setSelectedProduct(null); }}
-        hasVendor={!!myVendor} onChat={() => { setShowChat(true); setShowProfile(false); setShowParrainage(false); setVendorPage(null); setSelectedProduct(null); }} darkMode={darkMode} onDarkMode={() => setDarkMode(!darkMode)} darkMode={darkMode} onDarkMode={() => setDarkMode(!darkMode)} darkMode={darkMode} onDarkMode={() => setDarkMode(!darkMode)} darkMode={darkMode} onDarkMode={() => setDarkMode(!darkMode)}
+           <Navbar
+        page={page}
+        setPage={handlePageChange}
+        cartCount={cartCount}
+        user={user}
+        onLogout={() => {
+          supabase.auth.signOut();
+          setUser(null);
+        }}
+        onProfile={() => {
+          setShowProfile(true);
+          setSelectedProduct(null);
+          setVendorPage(null);
+          setShowParrainage(false);
+        }}
+        favCount={favorites.length}
+        lang="FR"
+        setLang={() => {}}
+        onVendor={() => {
+          setVendorPage(myVendor ? "dashboard" : "register");
+          setShowProfile(false);
+          setSelectedProduct(null);
+        }}
+        hasVendor={!!myVendor}
+        onChat={() => {
+          setShowChat(true);
+          setShowProfile(false);
+          setShowParrainage(false);
+          setVendorPage(null);
+          setSelectedProduct(null);
+        }}
+        darkMode={darkMode}
+        onDarkMode={() => setDarkMode(!darkMode)}
       />
 
       {/* Pages */}
