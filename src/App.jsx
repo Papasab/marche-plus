@@ -109,7 +109,7 @@ function AuthPage({ onAuth }) {
 }
 
 // ── Navbar ────────────────────────────────────────────────────────
-function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount, lang, setLang, onVendor, hasVendor, onChat }) {
+function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount, lang, setLang, onVendor, hasVendor, onChat, darkMode, onDarkMode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <nav style={{ background: "#fff", borderBottom: "1px solid #E8E0FF", padding: "0 20px", display: "flex", alignItems: "center", gap: 12, height: 64, position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 12px rgba(107,33,168,0.08)" }}>
@@ -140,6 +140,9 @@ function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount,
         </button>
         <button onClick={onProfile} style={{ background: "#EDE9FE", color: "#6B21A8", border: "none", padding: "8px 14px", borderRadius: 99, fontWeight: 600, fontSize: 13 }}>
           👤 {user?.email?.split("@")[0]}
+        </button>
+        <button onClick={onDarkMode} style={{ background: darkMode ? "#D4AF37" : "#F5F2FF", color: darkMode ? "#1A0A2E" : "#6B21A8", border: "none", width: 36, height: 36, borderRadius: "50%", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {darkMode ? "☀️" : "🌙"}
         </button>
         <button onClick={onLogout} style={{ background: "none", border: "none", color: "#9CA3AF", fontSize: 13, cursor: "pointer" }}>Déco</button>
       </div>
@@ -438,9 +441,27 @@ function ShopPage({ products, onAdd, onSelect, favorites, onToggleFav, isFavorit
   const [search, setSearch] = useState("");
   const [cat, setCat]       = useState("Tous");
   const CATS = ["Tous", "Mode", "Électronique", "Maison", "Bureau"];
+  // Recherche intelligente avec tolérance aux fautes
+  const searchMatch = (text, query) => {
+    if (!query) return true;
+    const t = text.toLowerCase();
+    const q = query.toLowerCase();
+    if (t.includes(q)) return true;
+    // Tolérance aux fautes (distance de Levenshtein simplifiée)
+    const words = t.split(" ");
+    return words.some(w => {
+      if (Math.abs(w.length - q.length) > 2) return false;
+      let diff = 0;
+      for (let i = 0; i < Math.min(w.length, q.length); i++) {
+        if (w[i] !== q[i]) diff++;
+      }
+      return diff <= 1;
+    });
+  };
+
   const filtered = products.filter(p =>
     (cat === "Tous" || p.category === cat) &&
-    p.name.toLowerCase().includes(search.toLowerCase())
+    (searchMatch(p.name, search) || searchMatch(p.category || "", search) || searchMatch(p.description || "", search))
   );
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "20px 16px" }}>
@@ -448,6 +469,16 @@ function ShopPage({ products, onAdd, onSelect, favorites, onToggleFav, isFavorit
       <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
         <input placeholder="🔍 Rechercher un produit..." value={search} onChange={e => setSearch(e.target.value)}
           style={{ flex: 1, minWidth: 200, padding: "11px 18px", borderRadius: 99, border: "1.5px solid #E8E0FF", fontSize: 14, background: "#fff" }} />
+        <button onClick={() => {
+          if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) { alert("Recherche vocale non supportée sur ce navigateur"); return; }
+          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+          const recognition = new SpeechRecognition();
+          recognition.lang = "fr-FR";
+          recognition.start();
+          recognition.onresult = (e) => setSearch(e.results[0][0].transcript);
+        }} style={{ background: "#6B21A8", color: "#fff", border: "none", width: 44, height: 44, borderRadius: "50%", fontSize: 18, cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          🎤
+        </button>
       </div>
       <div style={{ display: "flex", gap: 8, marginBottom: 20, overflowX: "auto", paddingBottom: 4 }}>
         {CATS.map(c => (
@@ -475,7 +506,9 @@ function AvisSection({ produitId, user }) {
   const [avis, setAvis] = useState([]);
   const [note, setNote] = useState(5);
   const [comment, setComment] = useState("");
-  const [saving, setSaving] = useState(false);
+const [saving, setSaving] = useState(false);
+  const [myAvis, setMyAvis] = useState(null);
+  const [avisPhoto, setAvisPhoto] = useState("");
 
   useEffect(() => {
     supabase.from("avis").select("*").eq("produit_id", produitId).order("created_at", { ascending: false }).then(({ data }) => setAvis(data || []));
@@ -484,7 +517,8 @@ function AvisSection({ produitId, user }) {
   const saveAvis = async () => {
     if (!comment.trim()) return;
     setSaving(true);
-    await supabase.from("avis").insert({ produit_id: produitId, user_id: user?.id, client_nom: user?.email?.split("@")[0], note, commentaire: comment });
+    await supabase.from("avis").insert({ produit_id: produitId, user_id: user?.id, client_nom: user?.email?.split("@")[0], note, commentaire: comment, photo: avisPhoto });
+    setAvisPhoto("");
     setComment(""); setSaving(false);
     const { data } = await supabase.from("avis").select("*").eq("produit_id", produitId).order("created_at", { ascending: false });
     setAvis(data || []);
@@ -510,6 +544,22 @@ function AvisSection({ produitId, user }) {
           <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
             {[1,2,3,4,5].map(n => <button key={n} onClick={() => setNote(n)} style={{ width: 36, height: 36, borderRadius: "50%", background: n <= note ? "#D4AF37" : "#F5F2FF", color: n <= note ? "#fff" : "#9CA3AF", border: "none", fontSize: 16, cursor: "pointer" }}>★</button>)}
           </div>
+          {/* Photo avis */}
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: "#6B21A8", display: "block", marginBottom: 6 }}>📷 Photo (optionnel)</label>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <input type="file" accept="image/*" id="avis-photo" style={{ display: "none" }} onChange={async e => {
+                const file = e.target.files[0]; if (!file) return;
+                const reader = new FileReader();
+                reader.onload = ev => setAvisPhoto(ev.target.result);
+                reader.readAsDataURL(file);
+              }} />
+              <button onClick={() => document.getElementById("avis-photo").click()} style={{ background: "#F5F2FF", color: "#6B21A8", border: "1.5px dashed #E8E0FF", padding: "8px 16px", borderRadius: 10, fontSize: 13, cursor: "pointer" }}>
+                📷 Ajouter une photo
+              </button>
+              {avisPhoto && <img src={avisPhoto} alt="aperçu" style={{ width: 60, height: 60, borderRadius: 8, objectFit: "cover" }} />}
+            </div>
+          </div>
           <textarea placeholder="Partagez votre expérience..." value={comment} onChange={e => setComment(e.target.value)} rows={3}
             style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1.5px solid #E8E0FF", fontSize: 14, fontFamily: "inherit", marginBottom: 12, background: "#F5F2FF", resize: "vertical", position: "relative", zIndex: 10 }} />
           <button onClick={saveAvis} disabled={saving} style={{ background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "10px 24px", borderRadius: 99, fontWeight: 700, fontSize: 14 }}>
@@ -528,6 +578,7 @@ function AvisSection({ produitId, user }) {
               <div style={{ fontSize: 11, color: "#9CA3AF" }}>{new Date(a.created_at).toLocaleDateString("fr-FR")}</div>
             </div>
             <p style={{ fontSize: 14, color: "#6B7280", lineHeight: 1.6 }}>{a.commentaire}</p>
+            {a.photo && <img src={a.photo} alt="avis" style={{ width: "100%", maxHeight: 200, objectFit: "cover", borderRadius: 10, marginTop: 10 }} />}
           </div>
         ))}
         {avis.length === 0 && <div style={{ textAlign: "center", padding: "30px", color: "#9CA3AF", background: "#fff", borderRadius: 14, border: "1px solid #E8E0FF" }}>Aucun avis — soyez le premier !</div>}
@@ -1444,6 +1495,13 @@ export default function App() {
   const [flashSales, setFlashSales] = useState([]);
   const [promos, setPromos] = useState([]);
   const [showChat, setShowChat] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem("darkMode") === "true");
+
+  useEffect(() => {
+    localStorage.setItem("darkMode", darkMode);
+    document.body.style.background = darkMode ? "#0F0A1E" : "#F5F2FF";
+    document.body.style.color = darkMode ? "#fff" : "#1A0A2E";
+  }, [darkMode]);
   const [vendorPage, setVendorPage]     = useState(null);
   const [myVendor, setMyVendor]         = useState(null);
   const [myParrainage, setMyParrainage] = useState(null);
@@ -1614,7 +1672,7 @@ export default function App() {
         onProfile={() => { setShowProfile(true); setSelectedProduct(null); setVendorPage(null); setShowParrainage(false); }}
         favCount={favorites.length} lang="FR" setLang={() => {}}
         onVendor={() => { setVendorPage(myVendor ? "dashboard" : "register"); setShowProfile(false); setSelectedProduct(null); }}
-        hasVendor={!!myVendor} onChat={() => { setShowChat(true); setShowProfile(false); setShowParrainage(false); setVendorPage(null); setSelectedProduct(null); }}
+        hasVendor={!!myVendor} onChat={() => { setShowChat(true); setShowProfile(false); setShowParrainage(false); setVendorPage(null); setSelectedProduct(null); }} darkMode={darkMode} onDarkMode={() => setDarkMode(!darkMode)} darkMode={darkMode} onDarkMode={() => setDarkMode(!darkMode)} darkMode={darkMode} onDarkMode={() => setDarkMode(!darkMode)} darkMode={darkMode} onDarkMode={() => setDarkMode(!darkMode)}
       />
 
       {/* Pages */}
