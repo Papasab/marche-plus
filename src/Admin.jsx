@@ -1419,7 +1419,19 @@ ${month}
                       <span style={{ ...S.badge(v.statut === "approuve" ? "#e6f7ef" : "#fff8e1", v.statut === "approuve" ? "#0a7c45" : "#b76e00") }}>
                         {v.statut === "approuve" ? "✅ Approuvé" : "⏳ En attente"}
                       </span>
-                      <select value={v.statut} onChange={async e => {
+                      <button onClick={async () => {
+                          await supabase.from("vendeurs").update({ verifie: !v.verifie }).eq("id", v.id);
+                          loadAll();
+                        }} style={{ background: v.verifie ? "#D1FAE5" : "#F5F2FF", color: v.verifie ? "#059669" : "#6B21A8", border: "none", padding: "5px 12px", borderRadius: 99, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                          {v.verifie ? "✅ Vérifié" : "⬜ Vérifier"}
+                        </button>
+                        <button onClick={() => {
+                          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`https://marche-plus.vercel.app/?boutique=${v.slug}`)}`;
+                          window.open(qrUrl, "_blank");
+                        }} style={{ background: "#EDE9FE", color: "#6B21A8", border: "none", padding: "5px 12px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                          📱 QR Code
+                        </button>
+                        <select value={v.statut} onChange={async e => {
                         await supabase.from("vendeurs").update({ statut: e.target.value }).eq("id", v.id);
                         setVendors(vs => vs.map(x => x.id === v.id ? { ...x, statut: e.target.value } : x));
                       }} style={{ padding: "6px 10px", borderRadius: 8, border: "1px solid #ddd", fontSize: 12, cursor: "pointer" }}>
