@@ -112,7 +112,7 @@ function AuthPage({ onAuth }) {
 function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount, lang, setLang, onVendor, hasVendor, onChat, darkMode, onDarkMode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
-    <nav style={{ background: "#fff", borderBottom: "1px solid #E8E0FF", padding: "0 20px", display: "flex", alignItems: "center", gap: 12, height: 64, position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 12px rgba(107,33,168,0.08)" }}>
+    <nav style={{ background: "#fff", borderBottom: "1px solid #E8E0FF", padding: "0 16px", display: "flex", alignItems: "center", gap: 8, height: 60, position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 12px rgba(107,33,168,0.08)", maxWidth: "100vw", overflow: "hidden" }}>
       {/* Logo */}
       <div onClick={() => { setPage("home"); setMenuOpen(false); }} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 8, marginRight: "auto", flexShrink: 0 }}>
         <img src="/logo.png" alt="Marché+" style={{ height: 36, objectFit: "contain" }} onError={e => { e.target.style.display="none"; }} />
@@ -148,7 +148,7 @@ function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount,
       </div>
 
       {/* Mobile menu button */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }} className="nav-mob">
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto" }} className="nav-mob">
         <button onClick={() => setPage("cart")} style={{ position: "relative", background: cartCount > 0 ? "#6B21A8" : "#F5F2FF", color: cartCount > 0 ? "#fff" : "#6B21A8", border: "none", width: 40, height: 40, borderRadius: "50%", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>
           🛒
           {cartCount > 0 && <span style={{ position: "absolute", top: -2, right: -2, background: "#D4AF37", color: "#1A0A2E", width: 18, height: 18, borderRadius: "50%", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>{cartCount}</span>}
@@ -168,8 +168,9 @@ function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount,
           <button onClick={() => { onLogout(); setMenuOpen(false); }} style={{ background: "none", border: "none", color: "#DC2626", padding: "12px 16px", fontSize: 15, textAlign: "left" }}>🚪 Déconnexion</button>
         </div>
       )}
-    </nav>
-  );
+       </nav>
+    
+  )
 }
 
 // ── Bottom Navigation (mobile) ────────────────────────────────────
@@ -1667,40 +1668,40 @@ export default function App() {
 
   return (
     <>
-           <Navbar
-        page={page}
-        setPage={handlePageChange}
-        cartCount={cartCount}
-        user={user}
-        onLogout={() => {
-          supabase.auth.signOut();
-          setUser(null);
-        }}
-        onProfile={() => {
-          setShowProfile(true);
-          setSelectedProduct(null);
-          setVendorPage(null);
-          setShowParrainage(false);
-        }}
-        favCount={favorites.length}
-        lang="FR"
-        setLang={() => {}}
-        onVendor={() => {
-          setVendorPage(myVendor ? "dashboard" : "register");
-          setShowProfile(false);
-          setSelectedProduct(null);
-        }}
-        hasVendor={!!myVendor}
-        onChat={() => {
-          setShowChat(true);
-          setShowProfile(false);
-          setShowParrainage(false);
-          setVendorPage(null);
-          setSelectedProduct(null);
-        }}
-        darkMode={darkMode}
-        onDarkMode={() => setDarkMode(!darkMode)}
-      />
+       <Navbar
+  page={page}
+  setPage={handlePageChange}
+  cartCount={cartCount}
+  user={user}
+  onLogout={() => {
+    supabase.auth.signOut();
+    setUser(null);
+  }}
+  onProfile={() => {
+    setShowProfile(true);
+    setSelectedProduct(null);
+    setVendorPage(null);
+    setShowParrainage(false);
+  }}
+  favCount={favorites.length}
+  lang="FR"
+  setLang={() => {}}
+  onVendor={() => {
+    setVendorPage(myVendor ? "dashboard" : "register");
+    setShowProfile(false);
+    setSelectedProduct(null);
+  }}
+  hasVendor={!!myVendor}
+  onChat={() => {
+    setShowChat(true);
+    setShowProfile(false);
+    setShowParrainage(false);
+    setVendorPage(null);
+    setSelectedProduct(null);
+  }}
+  darkMode={darkMode}
+  onDarkMode={() => setDarkMode(!darkMode)}
+/>
 
       {/* Pages */}
       {!showProfile && !showParrainage && !vendorPage && page === "home"     && !selectedProduct && page === "home" && !showProfile && !vendorPage && !selectedProduct && <HomePage products={products} annonces={annonces} flashSales={flashSales} promos={promos} onSelect={setSelectedProduct} onAdd={addToCart} isFavorite={isFavorite} onToggleFav={toggleFavorite} setPage={handlePageChange} />}
