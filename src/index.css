@@ -32,6 +32,7 @@ button { font-family: inherit; cursor: pointer; transition: all 0.2s; }
   padding: 8px 0 16px;
   z-index: 200;
   box-shadow: 0 -4px 20px rgba(107,33,168,0.08);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
 }
 
