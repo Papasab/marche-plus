@@ -18,6 +18,10 @@ const createPaydunyaInvoice = async (total, description) => {
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
     body: JSON.stringify({ total, description, cancel_url: window.location.href, return_url: window.location.href, callback_url: window.location.href }),
   });
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    throw new Error("L’API de paiement n’est pas disponible ici. Teste le site déployé sur Vercel.");
+  }
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "Erreur PayDunya");
   return data.url;
@@ -973,26 +977,7 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
                 try {
                   window.location.href = await createPaydunyaInvoice(total, `Commande Marché+ — ${cart.map(i => i.name).join(", ")}`);
                 } catch (e) {
-                  alert("Erreur de connexion PayDunya");
-                }
-              }} style={{ width: "100%", background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "13px", borderRadius: 99, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
-                💳 Payer maintenant
-              </button>
-            </div>
-          )}
-
-          {form.method === "paydunya" && (
-            <div style={{ background: "#EDE9FE", borderRadius: 12, padding: "16px", marginTop: 14, border: "1px solid #6B21A8" }}>
-              <div style={{ fontWeight: 700, fontSize: 15, color: "#6B21A8", marginBottom: 10 }}>💳 Paiement sécurisé via PayDunya</div>
-              <p style={{ fontSize: 13, color: "#6B7280", marginBottom: 14 }}>Vous serez redirigé vers la page de paiement sécurisée PayDunya pour payer avec Orange Money, Moov Money ou carte bancaire.</p>
-              <button onClick={async () => {
-                const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
-                const discount = Math.round(subtotal * promoDiscount / 100);
-                const total = subtotal - discount;
-                try {
-                  window.location.href = await createPaydunyaInvoice(total, `Commande Marché+ — ${cart.map(i => i.name).join(", ")}`);
-                } catch (e) {
-                  alert("Erreur de connexion PayDunya");
+                  alert(e.message || "Erreur de connexion PayDunya");
                 }
               }} style={{ width: "100%", background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "13px", borderRadius: 99, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
                 💳 Payer maintenant
