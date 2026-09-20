@@ -128,6 +128,9 @@ input:focus, textarea:focus, select:focus { outline: 3px solid rgba(243, 107, 50
 
 @media (max-width: 768px) {
   body { padding-bottom: 80px; }
+  .store-shell { padding-top: 76px; }
+  .store-shell nav { position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; width: 100% !important; }
+  .store-shell .mobile-dropdown { top: 76px !important; max-height: calc(100vh - 76px); overflow-y: auto; }
   .nav-links, .nav-user, .admin-sidebar { display: none !important; }
   .bottom-nav { display: flex !important; justify-content: space-around; }
   .nav-mob { display: flex !important; }

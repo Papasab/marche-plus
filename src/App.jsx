@@ -149,22 +149,19 @@ function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount,
 
       {/* Mobile menu button */}
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto" }} className="nav-mob">
-        <button onClick={() => setPage("cart")} style={{ position: "relative", background: cartCount > 0 ? "#6B21A8" : "#F5F2FF", color: cartCount > 0 ? "#fff" : "#6B21A8", border: "none", width: 40, height: 40, borderRadius: "50%", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          🛒
-          {cartCount > 0 && <span style={{ position: "absolute", top: -2, right: -2, background: "#D4AF37", color: "#1A0A2E", width: 18, height: 18, borderRadius: "50%", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>{cartCount}</span>}
-        </button>
         <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: "none", border: "none", fontSize: 22, color: "#6B21A8" }}>☰</button>
       </div>
 
       {/* Mobile dropdown */}
       {menuOpen && (
         <div className="mobile-dropdown" style={{ position: "absolute", top: 64, left: 0, right: 0, background: "#fff", borderBottom: "1px solid #E8E0FF", padding: 16, display: "flex", flexDirection: "column", gap: 4, boxShadow: "0 8px 24px rgba(107,33,168,0.1)", zIndex: 100 }}>
-          {[{ key: "home", label: "🏠 Accueil" }, { key: "shop", label: "🛍 Boutique" }, { key: "orders", label: "📦 Commandes" }, { key: "favorites", label: "❤️ Favoris" }].map(({ key, label }) => (
+          {[{ key: "home", label: "🏠 Accueil" }, { key: "shop", label: "🛍 Boutique" }, { key: "orders", label: "📦 Commandes" }, { key: "tracking", label: "📍 Suivi" }, { key: "cart", label: `🛒 Panier${cartCount > 0 ? ` (${cartCount})` : ""}` }, { key: "favorites", label: `❤️ Favoris${favCount > 0 ? ` (${favCount})` : ""}` }].map(({ key, label }) => (
             <button key={key} onClick={() => { setPage(key); setMenuOpen(false); }} style={{ background: page === key ? "#EDE9FE" : "transparent", color: page === key ? "#6B21A8" : "#1A0A2E", border: "none", padding: "12px 16px", borderRadius: 10, fontWeight: page === key ? 700 : 400, fontSize: 15, textAlign: "left" }}>{label}</button>
           ))}
           <button onClick={() => { onVendor(); setMenuOpen(false); }} style={{ background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "12px 16px", borderRadius: 10, fontWeight: 700, fontSize: 15, textAlign: "left" }}>🏪 {hasVendor ? "Ma boutique" : "Vendre"}</button>
           <button onClick={() => { onProfile(); setMenuOpen(false); }} style={{ background: "#F5F2FF", color: "#6B21A8", border: "none", padding: "12px 16px", borderRadius: 10, fontWeight: 600, fontSize: 15, textAlign: "left" }}>👤 Mon profil</button>
           <button onClick={() => { onChat(); setMenuOpen(false); }} style={{ background: "#F5F2FF", color: "#6B21A8", border: "none", padding: "12px 16px", borderRadius: 10, fontWeight: 600, fontSize: 15, textAlign: "left" }}>💬 Chat vendeurs</button>
+          <button onClick={() => { onDarkMode(); setMenuOpen(false); }} style={{ background: "#F5F2FF", color: "#6B21A8", border: "none", padding: "12px 16px", borderRadius: 10, fontWeight: 600, fontSize: 15, textAlign: "left" }}>{darkMode ? "☀️ Mode clair" : "🌙 Mode sombre"}</button>
           <button onClick={() => { onLogout(); setMenuOpen(false); }} style={{ background: "none", border: "none", color: "#DC2626", padding: "12px 16px", fontSize: 15, textAlign: "left" }}>🚪 Déconnexion</button>
         </div>
       )}
