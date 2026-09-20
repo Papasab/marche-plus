@@ -22,7 +22,7 @@ const PROMO_CODES = {
 // ── Conditions d'utilisation ──────────────────────────────────────
 function ConditionsPage({ onBack }) {
   return (
-    <div style={{ maxWidth: 800, margin: "0 auto", padding: "28px 16px" }}>
+    <div className="store-conditions" style={{ maxWidth: 800, margin: "0 auto", padding: "28px 16px" }}>
       <button onClick={onBack} style={{ background: "none", border: "none", color: "#6B21A8", fontSize: 14, cursor: "pointer", marginBottom: 20, fontWeight: 600 }}>← Retour</button>
       <div style={{ background: "#fff", borderRadius: 20, border: "1px solid #E8E0FF", padding: "32px" }}>
         <h1 style={{ fontWeight: 900, fontSize: 26, color: "#1A0A2E", marginBottom: 6 }}>📋 Conditions d'utilisation</h1>
@@ -75,7 +75,7 @@ function AuthPage({ onAuth }) {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #4C1D95 0%, #6B21A8 60%, #D4AF37 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+    <div className="store-auth" style={{ minHeight: "100vh", background: "linear-gradient(135deg, #4C1D95 0%, #6B21A8 60%, #D4AF37 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <div style={{ width: "100%", maxWidth: 420 }}>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <img src="/logo.png" alt="Marché+" style={{ height: 80, objectFit: "contain", marginBottom: 12 }} onError={e => e.target.style.display="none"} />
@@ -121,7 +121,7 @@ function Navbar({ page, setPage, cartCount, user, onLogout, onProfile, favCount,
 
       {/* Nav links desktop */}
       <div className="nav-links" style={{ display: "flex", gap: 4 }}>
-        {[{ key: "home", label: "Accueil" }, { key: "shop", label: "Boutique" }, { key: "orders", label: "Commandes" }, { key: "tracking", label: "Suivi" }, { key: "tracking", label: "Suivi" }, { key: "tracking", label: "Suivi" }, { key: "tracking", label: "Suivi" }].map(({ key, label }) => (
+        {[{ key: "home", label: "Accueil" }, { key: "shop", label: "Boutique" }, { key: "orders", label: "Commandes" }, { key: "tracking", label: "Suivi" }].map(({ key, label }) => (
           <button key={key} onClick={() => setPage(key)} style={{ background: page === key ? "#EDE9FE" : "transparent", color: page === key ? "#6B21A8" : "#6B7280", border: "none", padding: "8px 14px", borderRadius: 99, fontWeight: page === key ? 700 : 500, fontSize: 14 }}>{label}</button>
         ))}
       </div>
@@ -298,7 +298,7 @@ function HomePage({ products, onSelect, onAdd, isFavorite, onToggleFav, setPage,
   }, []);
 
   return (
-    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "16px 16px 40px" }}>
+    <div className="store-home" style={{ maxWidth: 1100, margin: "0 auto", padding: "16px 16px 40px" }}>
 
       {/* Annonces */}
       {(annonces || []).filter(a => a.actif).map(a => (
@@ -465,7 +465,7 @@ function ShopPage({ products, onAdd, onSelect, favorites, onToggleFav, isFavorit
     (searchMatch(p.name, search) || searchMatch(p.category || "", search) || searchMatch(p.description || "", search))
   );
   return (
-    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "20px 16px" }}>
+    <div className="store-shop" style={{ maxWidth: 1100, margin: "0 auto", padding: "20px 16px" }}>
       {/* Search + filter */}
       <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
         <input placeholder="🔍 Rechercher un produit..." value={search} onChange={e => setSearch(e.target.value)}
@@ -599,7 +599,7 @@ function ProductDetailPage({ product: p, onAdd, onBack, isFavorite, onToggleFav,
   const hasDiscount = p.prix_original && p.prix_original > p.price;
 
   return (
-    <div style={{ maxWidth: 1000, margin: "0 auto", padding: "20px 16px" }}>
+    <div className="store-detail" style={{ maxWidth: 1000, margin: "0 auto", padding: "20px 16px" }}>
       <button onClick={onBack} style={{ background: "none", border: "none", color: "#6B21A8", fontSize: 14, cursor: "pointer", marginBottom: 20, fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>← Retour à la boutique</button>
 
       {/* Share buttons */}
@@ -703,7 +703,7 @@ function CartPage({ cart, onRemove, onUpdateQty, goToShop, goToPayment, promoCod
   const total    = subtotal - discount;
 
   if (cart.length === 0) return (
-    <div style={{ textAlign: "center", padding: "80px 20px" }}>
+    <div className="store-cart store-empty" style={{ textAlign: "center", padding: "80px 20px" }}>
       <div style={{ fontSize: 64, marginBottom: 16 }}>🛒</div>
       <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 8, color: "#1A0A2E" }}>Votre panier est vide</h2>
       <p style={{ color: "#9CA3AF", marginBottom: 24 }}>Ajoutez des produits pour commencer vos achats</p>
@@ -712,7 +712,7 @@ function CartPage({ cart, onRemove, onUpdateQty, goToShop, goToPayment, promoCod
   );
 
   return (
-    <div style={{ maxWidth: 700, margin: "0 auto", padding: "20px 16px" }}>
+    <div className="store-cart" style={{ maxWidth: 700, margin: "0 auto", padding: "20px 16px" }}>
       <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 20, color: "#1A0A2E" }}>🛒 Mon panier ({cart.length} article{cart.length > 1 ? "s" : ""})</h2>
       {cart.map(item => (
         <div key={item.id + (item.color || "") + (item.size || "")} style={{ background: "#fff", borderRadius: 14, border: "1px solid #E8E0FF", padding: "14px 16px", marginBottom: 10, display: "flex", gap: 14, alignItems: "center" }}>
@@ -812,7 +812,7 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
   );
 
   return (
-    <div style={{ maxWidth: 560, margin: "0 auto", padding: "24px 16px" }}>
+    <div className="store-payment" style={{ maxWidth: 560, margin: "0 auto", padding: "24px 16px" }}>
       <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 24, textAlign: "center", color: "#1A0A2E" }}>Finaliser la commande</h2>
       <StepBar />
 
@@ -1059,7 +1059,7 @@ function TrackingPage({ supabase }) {
   const pct = order?.status === "Livrée" ? 100 : order?.status === "Annulé" ? 0 : Math.max(10, ((stepIdx + 1) / STEPS.length) * 100);
 
   return (
-    <div style={{ maxWidth: 600, margin: "0 auto", padding: "28px 16px" }}>
+    <div className="store-tracking" style={{ maxWidth: 600, margin: "0 auto", padding: "28px 16px" }}>
       <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 6, color: "#1A0A2E" }}>📍 Suivi de commande</h2>
       <p style={{ fontSize: 14, color: "#9CA3AF", marginBottom: 24 }}>Entrez votre numéro de commande pour suivre votre livraison</p>
 
@@ -1124,7 +1124,7 @@ function OrdersPage({ orders, loading }) {
 
   if (loading) return <div style={{ textAlign: "center", padding: 80, color: "#9CA3AF" }}>Chargement...</div>;
   if (orders.length === 0) return (
-    <div style={{ textAlign: "center", padding: "80px 20px" }}>
+    <div className="store-orders store-empty" style={{ textAlign: "center", padding: "80px 20px" }}>
       <div style={{ fontSize: 60, marginBottom: 16 }}>📦</div>
       <h2 style={{ fontWeight: 800, fontSize: 22, color: "#1A0A2E", marginBottom: 8 }}>Aucune commande</h2>
       <p style={{ color: "#9CA3AF" }}>Vos commandes apparaîtront ici</p>
@@ -1132,7 +1132,7 @@ function OrdersPage({ orders, loading }) {
   );
 
   return (
-    <div style={{ maxWidth: 700, margin: "0 auto", padding: "20px 16px" }}>
+    <div className="store-orders" style={{ maxWidth: 700, margin: "0 auto", padding: "20px 16px" }}>
       <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 20, color: "#1A0A2E" }}>📦 Commandes ({orders.length})</h2>
       {orders.map(o => {
         const stepIdx = STEPS.indexOf(o.status === "En cours" ? "Reçue" : o.status === "En transit" ? "Expédiée" : o.status);
@@ -1173,14 +1173,14 @@ function OrdersPage({ orders, loading }) {
 // ── Favorites Page ────────────────────────────────────────────────
 function FavoritesPage({ favorites, onSelect, onToggleFav, onAdd, isFavorite }) {
   if (favorites.length === 0) return (
-    <div style={{ textAlign: "center", padding: "80px 20px" }}>
+    <div className="store-favorites store-empty" style={{ textAlign: "center", padding: "80px 20px" }}>
       <div style={{ fontSize: 60, marginBottom: 16 }}>🤍</div>
       <h2 style={{ fontWeight: 800, fontSize: 22, color: "#1A0A2E", marginBottom: 8 }}>Aucun favori</h2>
       <p style={{ color: "#9CA3AF" }}>Ajoutez des produits à vos favoris</p>
     </div>
   );
   return (
-    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "20px 16px" }}>
+    <div className="store-favorites" style={{ maxWidth: 1100, margin: "0 auto", padding: "20px 16px" }}>
       <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 20, color: "#1A0A2E" }}>❤️ Mes favoris ({favorites.length})</h2>
       <div className="product-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px,1fr))", gap: 16 }}>
         {favorites.map(p => <ProductCard key={p.id} p={p} onSelect={onSelect} onAdd={onAdd} isFavorite={isFavorite} onToggleFav={onToggleFav} />)}
@@ -1218,7 +1218,7 @@ function ProfilePage({ user, orders, favorites, onClose, setShowParrainage, supa
   };
 
   return (
-    <div style={{ maxWidth: 680, margin: "0 auto", padding: "20px 16px" }}>
+    <div className="store-profile" style={{ maxWidth: 680, margin: "0 auto", padding: "20px 16px" }}>
       <button onClick={onClose} style={{ background: "none", border: "none", color: "#6B21A8", fontSize: 14, cursor: "pointer", marginBottom: 16, fontWeight: 600 }}>← Retour</button>
 
       {/* Header */}
@@ -1340,7 +1340,7 @@ function ChatPage({ user, supabase, onBack }) {
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: "20px 16px" }}>
+    <div className="store-chat" style={{ maxWidth: 900, margin: "0 auto", padding: "20px 16px" }}>
       <button onClick={onBack} style={{ background: "none", border: "none", color: "#6B21A8", fontSize: 14, cursor: "pointer", marginBottom: 16, fontWeight: 600 }}>← Retour</button>
       <h2 style={{ fontWeight: 800, fontSize: 22, color: "#1A0A2E", marginBottom: 20 }}>💬 Chat avec les vendeurs</h2>
 
@@ -1442,7 +1442,7 @@ function ParrainagePage({ user, supabase, myParrainage, setMyParrainage, onBack 
   const shareWA   = () => window.open(`https://wa.me/?text=${encodeURIComponent(`Découvrez Marché+ ! Utilisez mon code pour 500 FCFA de réduction :\n${shareLink}`)}`, "_blank");
 
   return (
-    <div style={{ maxWidth: 580, margin: "0 auto", padding: "20px 16px" }}>
+    <div className="store-referral" style={{ maxWidth: 580, margin: "0 auto", padding: "20px 16px" }}>
       <button onClick={onBack} style={{ background: "none", border: "none", color: "#6B21A8", fontSize: 14, cursor: "pointer", marginBottom: 16, fontWeight: 600 }}>← Retour</button>
       <div style={{ background: "linear-gradient(135deg, #4C1D95, #6B21A8, #D4AF37)", borderRadius: 20, padding: "28px 24px", marginBottom: 16, color: "#fff", textAlign: "center" }}>
         <div style={{ fontSize: 40, marginBottom: 10 }}>🎁</div>
@@ -1531,8 +1531,10 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const boutique = params.get("boutique");
     const ref      = params.get("ref");
+    const suivi    = params.get("suivi");
     if (boutique) setVendorPage({ slug: boutique });
     if (ref) setPromoCode(ref);
+    if (suivi) setPage("tracking");
   }, []);
 
   // Fetch products
@@ -1667,7 +1669,7 @@ export default function App() {
   };
 
   return (
-    <>
+    <div className="store-shell">
        <Navbar
   page={page}
   setPage={handlePageChange}
@@ -1704,7 +1706,7 @@ export default function App() {
 />
 
       {/* Pages */}
-      {!showProfile && !showParrainage && !vendorPage && page === "home"     && !selectedProduct && page === "home" && !showProfile && !vendorPage && !selectedProduct && <HomePage products={products} annonces={annonces} flashSales={flashSales} promos={promos} onSelect={setSelectedProduct} onAdd={addToCart} isFavorite={isFavorite} onToggleFav={toggleFavorite} setPage={handlePageChange} />}
+      {!showProfile && !showParrainage && !vendorPage && page === "home" && !selectedProduct && <HomePage products={products} annonces={annonces} flashSales={flashSales} promos={promos} onSelect={setSelectedProduct} onAdd={addToCart} isFavorite={isFavorite} onToggleFav={toggleFavorite} setPage={handlePageChange} />}
       {!showProfile && !showParrainage && !vendorPage && page === "shop"     && !selectedProduct && <ShopPage products={products} onAdd={addToCart} onSelect={setSelectedProduct} favorites={favorites} onToggleFav={toggleFavorite} isFavorite={isFavorite} />}
       {!showProfile && !showParrainage && !vendorPage && selectedProduct     && <ProductDetailPage product={selectedProduct} onAdd={addToCart} onBack={() => setSelectedProduct(null)} isFavorite={isFavorite} onToggleFav={toggleFavorite} user={user} />}
       {!showProfile && !showParrainage && !vendorPage && page === "cart"     && <CartPage cart={cart} onRemove={removeFromCart} onUpdateQty={updateQty} goToShop={() => handlePageChange("shop")} goToPayment={() => handlePageChange("payment")} promoCode={promoCode} promoDiscount={promoDiscount} promoLabel={promoLabel} onApplyPromo={applyPromo} onRemovePromo={removePromo} points={points} />}
@@ -1743,7 +1745,7 @@ export default function App() {
           <div>© {new Date().getFullYear()} Marché+ Mali — Tous droits réservés</div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 

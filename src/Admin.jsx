@@ -276,7 +276,7 @@ function AdminLogin({ onLogin }) {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #1a1a1a 0%, #2d1810 50%, #1a1a1a 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+    <div className="admin-login" style={{ minHeight: "100vh", background: "linear-gradient(135deg, #1a1a1a 0%, #2d1810 50%, #1a1a1a 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <div style={{ width: "100%", maxWidth: 440 }}>
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: 32 }}>
@@ -588,7 +588,7 @@ Merci de votre confiance ! 🛍
   ];
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f4f5f7", fontFamily: "'Inter', 'Segoe UI', sans-serif" }}>
+    <div className="admin-shell" style={{ minHeight: "100vh", background: "#f4f5f7", fontFamily: "'Inter', 'Segoe UI', sans-serif" }}>
       <style>{`
         * { box-sizing: border-box; }
         input, textarea, select { outline: none; }
