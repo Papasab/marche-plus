@@ -121,6 +121,15 @@ function AuthPage({ onAuth }) {
     if (data.user) onAuth(data.user);
   };
 
+  const continueWithGoogle = async () => {
+    setError("");
+    const { error: googleError } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
+    });
+    if (googleError) setError("Connexion Google indisponible. Activez Google dans Supabase Auth.");
+  };
+
   return (
     <div className="store-auth" style={{ minHeight: "100vh", background: "linear-gradient(135deg, #4C1D95 0%, #6B21A8 60%, #D4AF37 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <div style={{ width: "100%", maxWidth: 420 }}>
@@ -170,6 +179,10 @@ function AuthPage({ onAuth }) {
           {error && <p style={{ color: "#DC2626", fontSize: 13, marginBottom: 12 }}>✗ {error}</p>}
           <button onClick={submit} disabled={loading} style={{ width: "100%", background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "14px", borderRadius: 12, fontWeight: 700, fontSize: 16, marginBottom: 16, boxShadow: "0 8px 24px rgba(107,33,168,0.3)", opacity: loading ? 0.7 : 1 }}>
             {loading ? "Chargement..." : mode === "login" ? "Se connecter" : "Créer mon compte"}
+          </button>
+          <div className="auth-divider"><span>ou</span></div>
+          <button type="button" onClick={continueWithGoogle} className="google-auth-button">
+            <span className="google-mark">G</span> Continuer avec Google
           </button>
           <p style={{ textAlign: "center", fontSize: 13, color: "#9CA3AF" }}>
             {mode === "login" ? "Pas encore de compte ? " : "Déjà un compte ? "}

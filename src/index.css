@@ -237,6 +237,11 @@ input:focus, textarea:focus, select:focus { outline: 3px solid rgba(243, 107, 50
 .account-type-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 4px; margin-bottom: 16px; border-radius: 12px; background: var(--primary-light); }
 .account-type-switch button { padding: 10px; border: 0; border-radius: 9px; background: transparent !important; color: var(--muted) !important; font-size: 13px; font-weight: 700; }
 .account-type-switch button.active { background: #fff !important; color: var(--primary-dark) !important; box-shadow: 0 4px 12px rgba(15,75,52,.10); }
+.auth-divider { display: flex; align-items: center; gap: 10px; margin: 4px 0 14px; color: var(--muted); font-size: 12px; }
+.auth-divider::before, .auth-divider::after { content: ''; height: 1px; flex: 1; background: var(--line); }
+.google-auth-button { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 18px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 10px; background: #fff !important; color: var(--ink) !important; font-weight: 700; box-shadow: 0 4px 12px rgba(17,17,17,.06); }
+.google-auth-button:hover { border-color: var(--primary) !important; background: var(--primary-light) !important; }
+.google-mark { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; color: #4285f4; font: 700 16px Arial, sans-serif; }
 
 @media (max-width: 900px) {
   .market-hero { grid-template-columns: 1fr; padding: 42px 30px; }
