@@ -4,11 +4,10 @@ import { createClient } from "@supabase/supabase-js";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_KEY;
 const supabase    = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const ADMIN_EMAIL    = "kone91139@gmail.com";
-const ADMIN_PASSWORD = "Souare46";
 const COMMISSION     = 10;
 
 const fmt = (n) => new Intl.NumberFormat("fr-FR").format(n) + " FCFA";
@@ -256,23 +255,17 @@ function AnnonceManager({ supabase }) {
 function AdminLogin({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [adminPwd, setAdminPwd] = useState("");
-  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleLogin = async () => {
     setError(""); setLoading(true);
-    if (email !== ADMIN_EMAIL) { setError("Accès refusé — email non autorisé"); setLoading(false); return; }
-    const { error: e } = await supabase.auth.signInWithPassword({ email, password });
+    if (email.trim().toLowerCase() !== ADMIN_EMAIL) { setError("Accès refusé — email non autorisé"); setLoading(false); return; }
+    const { data, error: e } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
     setLoading(false);
     if (e) { setError("Email ou mot de passe incorrect"); return; }
-    setStep(2);
-  };
-
-  const handleAdminPwd = () => {
-    if (adminPwd === ADMIN_PASSWORD) onLogin();
-    else setError("Mot de passe admin incorrect");
+    if (data.user?.email?.toLowerCase() === ADMIN_EMAIL) onLogin();
+    else setError("Accès administrateur refusé");
   };
 
   return (
@@ -287,17 +280,14 @@ function AdminLogin({ onLogin }) {
 
         <div style={{ background: "rgba(255,255,255,0.05)", backdropFilter: "blur(10px)", borderRadius: 20, border: "1px solid rgba(255,255,255,0.1)", padding: "36px 32px" }}>
           <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
-            {[1, 2].map(n => (
-              <div key={n} style={{ flex: 1, height: 4, borderRadius: 99, background: step >= n ? "#FF6B00" : "rgba(255,255,255,0.15)" }} />
-            ))}
+            <div style={{ flex: 1, height: 4, borderRadius: 99, background: "#FF6B00" }} />
           </div>
 
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginBottom: 20 }}>
-            {step === 1 ? "Étape 1 : Connexion au compte" : "Étape 2 : Vérification admin"}
+            Connexion sécurisée par Supabase Auth
           </p>
 
-          {step === 1 && (
-            <>
+          <>
               {[
                 { label: "Email", key: "email", type: "email", val: email, set: setEmail, ph: "kone91139@gmail.com" },
                 { label: "Mot de passe", key: "pwd", type: "password", val: password, set: setPassword, ph: "••••••••" },
@@ -312,23 +302,7 @@ function AdminLogin({ onLogin }) {
               <button onClick={handleLogin} disabled={loading} style={{ width: "100%", background: "#FF6B00", color: "#fff", border: "none", padding: "14px", borderRadius: 12, fontWeight: 700, fontSize: 15, cursor: "pointer", opacity: loading ? 0.7 : 1, marginTop: 4 }}>
                 {loading ? "Connexion..." : "Continuer →"}
               </button>
-            </>
-          )}
-
-          {step === 2 && (
-            <>
-              <div style={{ textAlign: "center", marginBottom: 20 }}>
-                <div style={{ fontSize: 40, marginBottom: 8 }}>🔐</div>
-                <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 13 }}>Entrez le code secret administrateur</p>
-              </div>
-              <input type="password" placeholder="Code admin secret" value={adminPwd} onChange={e => setAdminPwd(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAdminPwd()}
-                style={{ width: "100%", padding: "12px 16px", borderRadius: 10, border: "1.5px solid rgba(255,255,255,0.15)", fontSize: 14, background: "rgba(255,255,255,0.08)", color: "#fff", outline: "none", marginBottom: 14, letterSpacing: 4, textAlign: "center" }} />
-              {error && <div style={{ background: "rgba(192,57,43,0.2)", color: "#ff8080", padding: "10px 14px", borderRadius: 8, fontSize: 13, marginBottom: 14 }}>✗ {error}</div>}
-              <button onClick={handleAdminPwd} style={{ width: "100%", background: "#FF6B00", color: "#fff", border: "none", padding: "14px", borderRadius: 12, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
-                🔓 Accéder au tableau de bord
-              </button>
-            </>
-          )}
+          </>
         </div>
       </div>
     </div>

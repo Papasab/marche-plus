@@ -10,6 +10,18 @@ const supabase      = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const fmt = (n) => new Intl.NumberFormat("fr-FR").format(n) + " FCFA";
 const genId = () => "CMD-" + Math.floor(100000 + Math.random() * 900000);
+const createPaydunyaInvoice = async (total, description) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) throw new Error("Session utilisateur requise");
+  const response = await fetch("/api/paydunya", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify({ total, description, cancel_url: window.location.href, return_url: window.location.href, callback_url: window.location.href }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Erreur PayDunya");
+  return data.url;
+};
 
 // ── Promo codes ───────────────────────────────────────────────────
 const PROMO_CODES = {
@@ -959,33 +971,7 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
                 const discount = Math.round(subtotal * promoDiscount / 100);
                 const total = subtotal - discount;
                 try {
-                  const res = await fetch("https://app.paydunya.com/api/v1/checkout-invoice/create", {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                      "PAYDUNYA-MASTER-KEY": import.meta.env.VITE_PAYDUNYA_MASTER_KEY,
-                      "PAYDUNYA-PRIVATE-KEY": import.meta.env.VITE_PAYDUNYA_PRIVATE_KEY,
-                      "PAYDUNYA-TOKEN": import.meta.env.VITE_PAYDUNYA_TOKEN,
-                    },
-                    body: JSON.stringify({
-                      invoice: {
-                        total_amount: total,
-                        description: `Commande Marché+ — ${cart.map(i => i.name).join(", ")}`,
-                      },
-                      store: { name: "Marché+" },
-                      actions: {
-                        cancel_url: window.location.href,
-                        return_url: window.location.href,
-                        callback_url: window.location.href,
-                      },
-                    }),
-                  });
-                  const data = await res.json();
-                  if (data.response_code === "00") {
-                    window.location.href = data.response_text;
-                  } else {
-                    alert("Erreur PayDunya : " + data.response_text);
-                  }
+                  window.location.href = await createPaydunyaInvoice(total, `Commande Marché+ — ${cart.map(i => i.name).join(", ")}`);
                 } catch (e) {
                   alert("Erreur de connexion PayDunya");
                 }
@@ -1004,33 +990,7 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
                 const discount = Math.round(subtotal * promoDiscount / 100);
                 const total = subtotal - discount;
                 try {
-                  const res = await fetch("https://app.paydunya.com/api/v1/checkout-invoice/create", {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                      "PAYDUNYA-MASTER-KEY": import.meta.env.VITE_PAYDUNYA_MASTER_KEY,
-                      "PAYDUNYA-PRIVATE-KEY": import.meta.env.VITE_PAYDUNYA_PRIVATE_KEY,
-                      "PAYDUNYA-TOKEN": import.meta.env.VITE_PAYDUNYA_TOKEN,
-                    },
-                    body: JSON.stringify({
-                      invoice: {
-                        total_amount: total,
-                        description: `Commande Marché+ — ${cart.map(i => i.name).join(", ")}`,
-                      },
-                      store: { name: "Marché+" },
-                      actions: {
-                        cancel_url: window.location.href,
-                        return_url: window.location.href,
-                        callback_url: window.location.href,
-                      },
-                    }),
-                  });
-                  const data = await res.json();
-                  if (data.response_code === "00") {
-                    window.location.href = data.response_text;
-                  } else {
-                    alert("Erreur PayDunya : " + data.response_text);
-                  }
+                  window.location.href = await createPaydunyaInvoice(total, `Commande Marché+ — ${cart.map(i => i.name).join(", ")}`);
                 } catch (e) {
                   alert("Erreur de connexion PayDunya");
                 }
