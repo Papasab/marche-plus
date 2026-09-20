@@ -439,6 +439,7 @@ function exportToExcel(orders, type = "commandes") {
 // ─── Dashboard ────────────────────────────────────────────────
 function AdminDashboard({ onLogout }) {
   const [tab, setTab] = useState("overview");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [vendors, setVendors] = useState([]);
@@ -573,7 +574,7 @@ Merci de votre confiance ! 🛍
   );
 
   const TABS = [
-    { key: "overview", label: "Vue d'ensemble", icon: "📊" },
+    { key: "overview", label: "Dashboard", icon: "📊" },
     { key: "products", label: "Produits",        icon: "🛍" },
     { key: "orders",   label: "Commandes",       icon: "📦", badge: pendingOrders },
     { key: "vendors",  label: "Vendeurs",         icon: "🏪" },
@@ -599,6 +600,7 @@ Merci de votre confiance ! 🛍
 
       {/* Header */}
       <header style={{ background: "#1a1a1a", height: 62, display: "flex", alignItems: "center", padding: "0 24px", gap: 16, position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, boxShadow: "0 2px 12px rgba(0,0,0,0.3)" }}>
+        <button className="admin-mobile-toggle" onClick={() => setMobileMenuOpen(open => !open)} aria-label="Ouvrir le menu administrateur">☰</button>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginRight: "auto" }}>
           <div style={{ width: 34, height: 34, borderRadius: 10, background: "#FF6B00", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🛍</div>
           <div>
@@ -619,6 +621,12 @@ Merci de votre confiance ! 🛍
           Déconnexion
         </button>
       </header>
+
+      {mobileMenuOpen && <div className="admin-mobile-menu">
+        <div className="admin-mobile-menu-head"><strong>Navigation</strong><button onClick={() => setMobileMenuOpen(false)}>×</button></div>
+        {TABS.map(t => <button key={t.key} className={tab === t.key ? "active" : ""} onClick={() => { setTab(t.key); setMobileMenuOpen(false); }}>{t.icon} {t.label}{t.badge > 0 && <span>{t.badge}</span>}</button>)}
+        <button className="admin-mobile-logout" onClick={onLogout}>↪ Déconnexion</button>
+      </div>}
 
       {/* Sidebar */}
       <aside className="admin-sidebar" style={{ position: "fixed", top: 62, left: 0, bottom: 0, width: 230, background: "#fff", borderRight: "1px solid #ebebeb", padding: "16px 12px", overflowY: "auto", zIndex: 100 }}>
@@ -661,8 +669,8 @@ Merci de votre confiance ! 🛍
           <>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22, flexWrap: "wrap", gap: 10 }}>
               <div>
-                <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 2 }}>Vue d'ensemble</h2>
-                <p style={{ fontSize: 13, color: "#888" }}>{new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
+                <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 2 }}>Bonjour, Admin 👋</h2>
+                <p style={{ fontSize: 13, color: "#888" }}>Voici l'activité de Marché+ · {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
               </div>
               <button onClick={() => exportToExcel(orders)} style={{ background: "#0a7c45", color: "#fff", border: "none", padding: "9px 16px", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer" }}>
                 📊 Exporter toutes les commandes

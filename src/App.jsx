@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { VendorRegister, VendorDashboard, VendorShopPage } from "./components/VendorSystem";
 
 const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY  = import.meta.env.VITE_SUPABASE_KEY;
+const SUPABASE_KEY  = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_KEY;
 const WHATSAPP      = import.meta.env.VITE_WHATSAPP || "22391090523";
 const ADMIN_EMAIL   = "kone91139@gmail.com";
 const supabase      = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -60,6 +60,8 @@ function AuthPage({ onAuth }) {
   const [mode, setMode]       = useState("login");
   const [email, setEmail]     = useState("");
   const [password, setPass]   = useState("");
+  const [accountType, setAccountType] = useState("buyer");
+  const [registration, setRegistration] = useState({ name: "", phone: "", shop: "", shopDescription: "", neighborhood: "", category: "Mode" });
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState("");
 
@@ -73,11 +75,19 @@ function AuthPage({ onAuth }) {
       setError("Le mot de passe doit contenir au moins 6 caractères.");
       return;
     }
+    if (mode === "signup" && (!registration.name.trim() || !registration.phone.trim())) {
+      setError("Veuillez renseigner votre nom et votre téléphone.");
+      return;
+    }
+    if (mode === "signup" && accountType === "seller" && !registration.shop.trim()) {
+      setError("Veuillez renseigner le nom de votre boutique.");
+      return;
+    }
 
     setError(""); setLoading(true);
     const fn = mode === "login"
       ? supabase.auth.signInWithPassword({ email: normalizedEmail, password })
-      : supabase.auth.signUp({ email: normalizedEmail, password });
+      : supabase.auth.signUp({ email: normalizedEmail, password, options: { data: { account_type: accountType, ...registration } } });
     const { data, error: e } = await fn;
     setLoading(false);
     if (e) { setError(e.message); return; }
@@ -98,6 +108,32 @@ function AuthPage({ onAuth }) {
         <div style={{ background: "#fff", borderRadius: 24, padding: "32px 28px", boxShadow: "0 24px 60px rgba(0,0,0,0.2)" }}>
           <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 6, color: "#1A0A2E" }}>{mode === "login" ? "Connexion" : "Créer un compte"}</h2>
           <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 24 }}>{mode === "login" ? "Connectez-vous pour continuer" : "Rejoignez Marché+ aujourd'hui"}</p>
+          {mode === "signup" && (
+            <div className="account-type-switch">
+              <button type="button" className={accountType === "buyer" ? "active" : ""} onClick={() => setAccountType("buyer")}>🛍️ Acheteur</button>
+              <button type="button" className={accountType === "seller" ? "active" : ""} onClick={() => setAccountType("seller")}>🏪 Vendeur</button>
+            </div>
+          )}
+          {mode === "signup" && [
+            { ph: "Nom complet", key: "name", type: "text" },
+            { ph: "Téléphone", key: "phone", type: "tel" },
+          ].map(f => (
+            <input key={f.key} type={f.type} placeholder={f.ph} value={registration[f.key]} required onChange={e => setRegistration(p => ({ ...p, [f.key]: e.target.value }))}
+              style={{ width: "100%", padding: "13px 16px", borderRadius: 12, border: "1.5px solid #E8E0FF", fontSize: 14, marginBottom: 12, background: "#F5F2FF" }} />
+          ))}
+          {mode === "signup" && accountType === "seller" && [
+            { ph: "Nom de votre boutique", key: "shop", type: "text" },
+            { ph: "Quartier", key: "neighborhood", type: "text" },
+          ].map(f => (
+            <input key={f.key} type={f.type} placeholder={f.ph} value={registration[f.key]} required onChange={e => setRegistration(p => ({ ...p, [f.key]: e.target.value }))}
+              style={{ width: "100%", padding: "13px 16px", borderRadius: 12, border: "1.5px solid #E8E0FF", fontSize: 14, marginBottom: 12, background: "#F5F2FF" }} />
+          ))}
+          {mode === "signup" && accountType === "seller" && <>
+            <select value={registration.category} onChange={e => setRegistration(p => ({ ...p, category: e.target.value }))} style={{ width: "100%", padding: "13px 16px", borderRadius: 12, border: "1.5px solid #E8E0FF", fontSize: 14, marginBottom: 12, background: "#F5F2FF" }}>
+              {['Mode', 'Électronique', 'Maison', 'Bureau'].map(category => <option key={category}>{category}</option>)}
+            </select>
+            <textarea placeholder="Description de votre boutique" value={registration.shopDescription} onChange={e => setRegistration(p => ({ ...p, shopDescription: e.target.value }))} rows={2} style={{ width: "100%", padding: "13px 16px", borderRadius: 12, border: "1.5px solid #E8E0FF", fontSize: 14, marginBottom: 12, background: "#F5F2FF", resize: "vertical" }} />
+          </>}
           {[{ ph: "Email", val: email, set: setEmail, type: "email" }, { ph: "Mot de passe", val: password, set: setPass, type: "password" }].map(f => (
             <input key={f.ph} type={f.type} placeholder={f.ph} value={f.val} required minLength={f.type === "password" ? 6 : undefined} onChange={e => f.set(e.target.value)}
               style={{ width: "100%", padding: "13px 16px", borderRadius: 12, border: "1.5px solid #E8E0FF", fontSize: 14, marginBottom: 12, background: "#F5F2FF" }} />
@@ -235,6 +271,9 @@ function BottomNav({ page, setPage, cartCount, favCount, onProfile }) {
 function ProductCard({ p, onSelect, onAdd, isFavorite, onToggleFav }) {
   const [hovered, setHovered] = useState(false);
   const hasDiscount = p.prix_original && p.prix_original > p.price;
+  const sellerName = p.vendeur_nom || p.vendor_name || "Vendeur Marché+";
+  const sellerArea = p.quartier || p.vendor_quartier || "Mali";
+  const verified = p.vendeur_verifie || p.vendor_verified || p.verifie;
   return (
     <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8E0FF", overflow: "hidden", cursor: "pointer", transition: "all .3s", transform: hovered ? "translateY(-4px)" : "none", boxShadow: hovered ? "0 16px 40px rgba(107,33,168,0.15)" : "0 2px 8px rgba(107,33,168,0.05)" }}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onClick={() => onSelect(p)}>
@@ -252,6 +291,11 @@ function ProductCard({ p, onSelect, onAdd, isFavorite, onToggleFav }) {
         <div style={{ display: "flex", alignItems: "center", gap: 3, marginBottom: 8 }}>
           {[1,2,3,4,5].map(n => <span key={n} style={{ fontSize: 10, color: n <= Math.round(p.rating) ? "#D4AF37" : "#E8E0FF" }}>★</span>)}
           <span style={{ fontSize: 11, color: "#9CA3AF", marginLeft: 2 }}>{p.rating}</span>
+        </div>
+        <div className="product-meta" style={{ marginBottom: 10 }}>
+          <span>{sellerName}</span>
+          {verified && <span className="verified-badge">✓ Vérifié</span>}
+          <small>📍 {sellerArea}</small>
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
@@ -271,9 +315,12 @@ function ProductCard({ p, onSelect, onAdd, isFavorite, onToggleFav }) {
 function HomePage({ products, onSelect, onAdd, isFavorite, onToggleFav, setPage, annonces, flashSales, promos }) {
   const [slide, setSlide] = useState(0);
   const [timers, setTimers] = useState({});
+  const [homeQuery, setHomeQuery] = useState("");
   const featured = products.slice(0, 4);
   const newArrivals = products.slice(4, 8);
   const onSale = products.filter(p => p.reduction > 0).slice(0, 4);
+  const localProducts = products.filter(p => p.quartier || p.vendor_quartier).slice(0, 4);
+  const boutiques = [...new Map(products.filter(p => p.vendeur_id).map(p => [p.vendeur_id, p])).values()].slice(0, 4);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -306,6 +353,21 @@ function HomePage({ products, onSelect, onAdd, isFavorite, onToggleFav, setPage,
 
   return (
     <div className="store-home" style={{ maxWidth: 1100, margin: "0 auto", padding: "16px 16px 40px" }}>
+
+      <section className="market-hero">
+        <div className="market-hero-copy">
+          <span className="eyebrow">MARCHÉ+ · MALI</span>
+          <h1>Le meilleur du commerce local, près de vous.</h1>
+          <p>Découvrez des produits sélectionnés auprès de vendeurs de confiance et commandez en quelques clics.</p>
+          <div className="hero-search">
+            <span>⌕</span>
+            <input value={homeQuery} onChange={e => setHomeQuery(e.target.value)} placeholder="Que recherchez-vous ?" aria-label="Rechercher un produit" />
+            <button onClick={() => setPage("shop")}>Explorer</button>
+          </div>
+          <div className="hero-trust"><span>✓ Vendeurs vérifiés</span><span>✓ Paiement flexible</span><span>✓ Livraison au Mali</span></div>
+        </div>
+        <div className="hero-orbit" aria-hidden="true"><div className="hero-orbit-card hero-orbit-card-one">🛍️<strong>+{products.length}</strong><small>produits disponibles</small></div><div className="hero-orbit-card hero-orbit-card-two">⭐<strong>4,8/5</strong><small>expérience client</small></div><div className="hero-orbit-center">M+</div></div>
+      </section>
 
       {/* Annonces */}
       {(annonces || []).filter(a => a.actif).map(a => (
@@ -403,6 +465,25 @@ function HomePage({ products, onSelect, onAdd, isFavorite, onToggleFav, setPage,
           {featured.map(p => <ProductCard key={p.id} p={p} onSelect={onSelect} onAdd={onAdd} isFavorite={isFavorite} onToggleFav={onToggleFav} />)}
         </div>
       </div>
+
+      <section className="market-section">
+        <div className="section-heading"><div><span className="eyebrow">COMMUNAUTÉ</span><h2>Meilleures boutiques</h2></div><button onClick={() => setPage("shop")}>Voir les boutiques →</button></div>
+        <div className="seller-grid">
+          {(boutiques.length ? boutiques : [{ id: "default", nom_boutique: "Les vendeurs Marché+", description: "Une sélection locale de qualité", logo: "" }]).map(v => (
+            <div className="seller-card" key={v.id}>
+              <div className="seller-avatar">{v.logo ? <img src={v.logo} alt="" /> : "🏪"}</div>
+              <div><h3>{v.nom_boutique || "Boutique partenaire"}</h3><p>{v.description || "Produits sélectionnés avec soin"}</p><small>✓ Vendeur vérifié · Mali</small></div>
+              <span className="seller-arrow">↗</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="market-section local-section">
+        <div className="section-heading"><div><span className="eyebrow">AUTOUR DE VOUS</span><h2>Découvrez près de chez vous</h2></div></div>
+        <div className="local-banner"><div><h3>Des trouvailles locales, livrées simplement.</h3><p>Explorez les produits proposés par les vendeurs de votre quartier.</p></div><button onClick={() => setPage("shop")}>Découvrir →</button></div>
+        {localProducts.length > 0 && <div className="home-grid local-products">{localProducts.map(p => <ProductCard key={p.id} p={p} onSelect={onSelect} onAdd={onAdd} isFavorite={isFavorite} onToggleFav={onToggleFav} />)}</div>}
+      </section>
 
       {/* Nouveautés */}
       <div style={{ marginBottom: 32 }}>
