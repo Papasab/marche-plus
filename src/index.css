@@ -72,7 +72,7 @@ input:focus, textarea:focus, select:focus { outline: 3px solid rgba(243, 107, 50
 .store-home > div:nth-child(4) button { background: var(--lime) !important; color: var(--ink) !important; border-radius: 8px !important; }
 .store-home .home-cats > div { background: rgba(255,255,255,.76) !important; border: 1px solid rgba(255,255,255,.8); border-radius: 16px !important; box-shadow: 0 12px 28px rgba(17,17,17,.06); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 .store-home .home-cats > div:hover { border-color: var(--coral); }
-.store-home .home-grid, .store-shop .product-grid, .store-favorites .product-grid { gap: 18px !important; }
+.store-home .home-grid, .store-shop .product-grid, .store-favorites .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 18px !important; }
 .store-home .home-grid > div, .store-shop .product-grid > div, .store-favorites .product-grid > div { background: rgba(255,255,255,.88) !important; border: 1px solid rgba(255,255,255,.95) !important; border-radius: 18px !important; box-shadow: 0 12px 30px rgba(17,17,17,.07) !important; }
 .store-home .home-grid > div:hover, .store-shop .product-grid > div:hover, .store-favorites .product-grid > div:hover { border-color: var(--coral) !important; box-shadow: var(--shadow) !important; }
 .store-home .home-grid button, .store-shop .product-grid button, .store-favorites .product-grid button, .store-cart > button, .store-payment button { border-radius: 8px !important; background: var(--coral) !important; box-shadow: none !important; }
