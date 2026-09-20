@@ -76,6 +76,7 @@ function AuthPage({ onAuth }) {
   const [mode, setMode]       = useState("login");
   const [email, setEmail]     = useState("");
   const [password, setPass]   = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [accountType, setAccountType] = useState("buyer");
   const [registration, setRegistration] = useState({ name: "", phone: "", shop: "", shopDescription: "", neighborhood: "", category: "Mode" });
   const [loading, setLoading] = useState(false);
@@ -87,8 +88,12 @@ function AuthPage({ onAuth }) {
       setError("Veuillez entrer une adresse email valide.");
       return;
     }
-    if (password.length < 6) {
-      setError("Le mot de passe doit contenir au moins 6 caractères.");
+    if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+      setError("Le mot de passe doit contenir au moins 8 caractères, une lettre et un chiffre.");
+      return;
+    }
+    if (mode === "signup" && password !== passwordConfirmation) {
+      setError("Les mots de passe ne correspondent pas.");
       return;
     }
     if (mode === "signup" && (!registration.name.trim() || !registration.phone.trim())) {
@@ -107,6 +112,12 @@ function AuthPage({ onAuth }) {
     const { data, error: e } = await fn;
     setLoading(false);
     if (e) { setError(e.message); return; }
+    if (mode === "signup" && !data.session) {
+      setError("Inscription réussie. Vérifiez votre email avant de vous connecter.");
+      setMode("login");
+      setPasswordConfirmation("");
+      return;
+    }
     if (data.user) onAuth(data.user);
   };
 
@@ -151,9 +162,11 @@ function AuthPage({ onAuth }) {
             <textarea placeholder="Description de votre boutique" value={registration.shopDescription} onChange={e => setRegistration(p => ({ ...p, shopDescription: e.target.value }))} rows={2} style={{ width: "100%", padding: "13px 16px", borderRadius: 12, border: "1.5px solid #E8E0FF", fontSize: 14, marginBottom: 12, background: "#F5F2FF", resize: "vertical" }} />
           </>}
           {[{ ph: "Email", val: email, set: setEmail, type: "email" }, { ph: "Mot de passe", val: password, set: setPass, type: "password" }].map(f => (
-            <input key={f.ph} type={f.type} placeholder={f.ph} value={f.val} required minLength={f.type === "password" ? 6 : undefined} onChange={e => f.set(e.target.value)}
+            <input key={f.ph} type={f.type} placeholder={f.ph} value={f.val} required minLength={f.type === "password" ? 8 : undefined} onChange={e => f.set(e.target.value)}
               style={{ width: "100%", padding: "13px 16px", borderRadius: 12, border: "1.5px solid #E8E0FF", fontSize: 14, marginBottom: 12, background: "#F5F2FF" }} />
           ))}
+          {mode === "signup" && <input type="password" placeholder="Confirmer le mot de passe" value={passwordConfirmation} required minLength={8} onChange={e => setPasswordConfirmation(e.target.value)}
+            style={{ width: "100%", padding: "13px 16px", borderRadius: 12, border: "1.5px solid #E8E0FF", fontSize: 14, marginBottom: 12, background: "#F5F2FF" }} />}
           {error && <p style={{ color: "#DC2626", fontSize: 13, marginBottom: 12 }}>✗ {error}</p>}
           <button onClick={submit} disabled={loading} style={{ width: "100%", background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "14px", borderRadius: 12, fontWeight: 700, fontSize: 16, marginBottom: 16, boxShadow: "0 8px 24px rgba(107,33,168,0.3)", opacity: loading ? 0.7 : 1 }}>
             {loading ? "Chargement..." : mode === "login" ? "Se connecter" : "Créer mon compte"}
