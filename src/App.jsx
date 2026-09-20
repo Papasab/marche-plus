@@ -64,10 +64,20 @@ function AuthPage({ onAuth }) {
   const [error, setError]     = useState("");
 
   const submit = async () => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      setError("Veuillez entrer une adresse email valide.");
+      return;
+    }
+    if (password.length < 6) {
+      setError("Le mot de passe doit contenir au moins 6 caractères.");
+      return;
+    }
+
     setError(""); setLoading(true);
     const fn = mode === "login"
-      ? supabase.auth.signInWithPassword({ email, password })
-      : supabase.auth.signUp({ email, password });
+      ? supabase.auth.signInWithPassword({ email: normalizedEmail, password })
+      : supabase.auth.signUp({ email: normalizedEmail, password });
     const { data, error: e } = await fn;
     setLoading(false);
     if (e) { setError(e.message); return; }
@@ -89,7 +99,7 @@ function AuthPage({ onAuth }) {
           <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 6, color: "#1A0A2E" }}>{mode === "login" ? "Connexion" : "Créer un compte"}</h2>
           <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 24 }}>{mode === "login" ? "Connectez-vous pour continuer" : "Rejoignez Marché+ aujourd'hui"}</p>
           {[{ ph: "Email", val: email, set: setEmail, type: "email" }, { ph: "Mot de passe", val: password, set: setPass, type: "password" }].map(f => (
-            <input key={f.ph} type={f.type} placeholder={f.ph} value={f.val} onChange={e => f.set(e.target.value)}
+            <input key={f.ph} type={f.type} placeholder={f.ph} value={f.val} required minLength={f.type === "password" ? 6 : undefined} onChange={e => f.set(e.target.value)}
               style={{ width: "100%", padding: "13px 16px", borderRadius: 12, border: "1.5px solid #E8E0FF", fontSize: 14, marginBottom: 12, background: "#F5F2FF" }} />
           ))}
           {error && <p style={{ color: "#DC2626", fontSize: 13, marginBottom: 12 }}>✗ {error}</p>}
