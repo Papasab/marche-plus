@@ -11,6 +11,11 @@ const ADMIN_EMAIL    = "kone91139@gmail.com";
 const COMMISSION     = 10;
 
 const fmt = (n) => new Intl.NumberFormat("fr-FR").format(n) + " FCFA";
+const orderAmount = (order) => Number(order?.total) || 0;
+const isCancelled = (order) => order?.status === "Annulé";
+const salesOrders = (orders) => orders.filter(order => !isCancelled(order));
+const totalSales = (orders) => salesOrders(orders).reduce((sum, order) => sum + orderAmount(order), 0);
+const commissionAmount = (orders) => Math.round(totalSales(orders) * COMMISSION / 100);
 
 const STATUS_COLORS = {
   "En cours":   { bg: "#191b1f", color: "#1a56db" },
@@ -390,9 +395,9 @@ function exportToExcel(orders, type = "commandes") {
     "Adresse":        o.client_adresse,
     "Paiement":       o.paiement,
     "Articles":       o.items,
-    "Total (FCFA)":   o.total,
-    "Commission (FCFA)": Math.round(o.total * 0.1),
-    "Net (FCFA)":     o.total - Math.round(o.total * 0.1),
+    "Total (FCFA)":   orderAmount(o),
+    "Commission (FCFA)": Math.round(orderAmount(o) * COMMISSION / 100),
+    "Net (FCFA)":     orderAmount(o) - Math.round(orderAmount(o) * COMMISSION / 100),
     "Statut":         o.status,
   }));
 
@@ -453,7 +458,7 @@ function AdminDashboard({ onLogout }) {
 
   useEffect(() => { loadData(); }, []);
 
-  const totalRevenue  = orders.reduce((s, o) => s + o.total, 0);
+  const totalRevenue  = totalSales(orders);
   const delivered     = orders.filter(o => o.status === "Livré").length;
   const pendingOrders = orders.filter(o => o.status === "En cours").length;
   const lowStock      = products.filter(p => p.stock < 10);
@@ -467,7 +472,7 @@ function AdminDashboard({ onLogout }) {
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().slice(0, 10);
       const dayOrders = orders.filter(o => o.date === dateStr);
-      days.push({ date: d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }), revenue: dayOrders.reduce((s, o) => s + o.total, 0), orders: dayOrders.length });
+      days.push({ date: d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }), revenue: totalSales(dayOrders), orders: dayOrders.length });
     }
     return days;
   })();
@@ -909,9 +914,9 @@ Merci de votre confiance ! 🛍
                           <div style={{ fontSize: 12, color: "#aaa", marginTop: 3 }}>📅 {o.date} · 💳 {o.paiement} · {o.items} article{o.items > 1 ? "s" : ""}</div>
                         </div>
                         <div style={{ textAlign: "right" }}>
-                          <div style={{ fontWeight: 900, fontSize: 20, color: "#1a1a1a" }}>{fmt(o.total)}</div>
-                          <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>Commission: -{fmt(Math.round(o.total * COMMISSION / 100))}</div>
-                          <div style={{ fontSize: 11, color: "#0a7c45", fontWeight: 600 }}>Net: {fmt(o.total - Math.round(o.total * COMMISSION / 100))}</div>
+                          <div style={{ fontWeight: 900, fontSize: 20, color: "#1a1a1a" }}>{fmt(orderAmount(o))}</div>
+                          <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>Commission: -{fmt(Math.round(orderAmount(o) * COMMISSION / 100))}</div>
+                          <div style={{ fontSize: 11, color: "#0a7c45", fontWeight: 600 }}>Net: {fmt(orderAmount(o) - Math.round(orderAmount(o) * COMMISSION / 100))}</div>
                         </div>
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -948,7 +953,7 @@ Merci de votre confiance ! 🛍
                   const now = new Date();
                   const month = now.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
                   const monthOrders = orders.filter(o => o.date?.startsWith(now.toISOString().slice(0,7)));
-                  const monthRevenue = monthOrders.reduce((s, o) => s + o.total, 0);
+                  const monthRevenue = totalSales(monthOrders);
                   return (
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
                       {[
@@ -969,8 +974,8 @@ Merci de votre confiance ! 🛍
                 const now = new Date();
                 const month = now.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
                 const monthOrders = orders.filter(o => o.date?.startsWith(now.toISOString().slice(0,7)));
-                const monthRevenue = monthOrders.reduce((s, o) => s + o.total, 0);
-                const commission = Math.round(monthRevenue * 0.1);
+                const monthRevenue = totalSales(monthOrders);
+                const commission = Math.round(monthRevenue * COMMISSION / 100);
                 const rapport = `📊 RAPPORT MENSUEL MARCHÉ+
 ${month}
 
@@ -1143,8 +1148,8 @@ ${month}
             {/* Stats globales */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px,1fr))", gap: 14, marginBottom: 24 }}>
               {[
-                { label: "CA total", value: fmt(orders.reduce((s,o) => s+o.total, 0)), icon: "💰", color: "#6B21A8" },
-                { label: "Commission (10%)", value: fmt(Math.round(orders.reduce((s,o) => s+o.total, 0)*0.1)), icon: "📊", color: "#DC2626" },
+                { label: "CA total", value: fmt(totalSales(orders)), icon: "💰", color: "#0F9D68" },
+                { label: "Commission (10%)", value: fmt(commissionAmount(orders)), icon: "📊", color: "#DC2626" },
                 { label: "Commandes total", value: orders.length, icon: "📦", color: "#D4AF37" },
                 { label: "Clients inscrits", value: users.length, icon: "👥", color: "#059669" },
                 { label: "Produits en ligne", value: products.length, icon: "🛍", color: "#6B21A8" },
@@ -1188,7 +1193,7 @@ ${month}
               <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8E0FF", padding: "20px" }}>
                 <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 16, color: "#1A0A2E" }}>🏆 Top vendeurs</h3>
                 {vendors.map(v => {
-                  const ventes = orders.filter(o=>o.vendeur_id===v.id).reduce((s,o)=>s+o.total,0);
+                  const ventes = totalSales(orders.filter(o=>o.vendeur_id===v.id));
                   return { ...v, ventes };
                 }).sort((a,b)=>b.ventes-a.ventes).slice(0,5).map((v, i) => (
                   <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
@@ -1234,8 +1239,8 @@ ${month}
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px,1fr))", gap: 14, marginBottom: 24 }}>
               {[
-                { label: "CA total", value: fmt(orders.reduce((s,o) => s+o.total, 0)), icon: "💰", color: VIOLET },
-                { label: "Commission (10%)", value: fmt(Math.round(orders.reduce((s,o) => s+o.total, 0)*0.1)), icon: "📊", color: "#DC2626" },
+                { label: "CA total", value: fmt(totalSales(orders)), icon: "💰", color: "#0F9D68" },
+                { label: "Commission (10%)", value: fmt(commissionAmount(orders)), icon: "📊", color: "#DC2626" },
                 { label: "Commandes total", value: orders.length, icon: "📦", color: JAUNE },
                 { label: "Clients inscrits", value: users.length, icon: "👥", color: "#059669" },
                 { label: "Produits en ligne", value: products.length, icon: "🛍", color: VIOLET },
@@ -1269,7 +1274,7 @@ ${month}
               </div>
               <div style={{ background: "#fff", borderRadius: 16, border: `1px solid ${BORDER}`, padding: "20px" }}>
                 <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 16 }}>🏆 Top vendeurs</h3>
-                {vendors.map(v => ({ ...v, ventes: orders.filter(o=>o.vendeur_id===v.id).reduce((s,o)=>s+o.total,0) })).sort((a,b)=>b.ventes-a.ventes).slice(0,5).map((v, i) => (
+                {vendors.map(v => ({ ...v, ventes: totalSales(orders.filter(o=>o.vendeur_id===v.id)) })).sort((a,b)=>b.ventes-a.ventes).slice(0,5).map((v, i) => (
                   <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                     <div style={{ width: 28, height: 28, borderRadius: "50%", background: i===0?"#D4AF37":i===1?"#9CA3AF":"#CD7F32", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 12, color: "#fff" }}>{i+1}</div>
                     <div style={{ flex: 1 }}>
@@ -1422,8 +1427,8 @@ ${month}
                         <option value="en_attente">En attente</option>
                       </select>
                       <button onClick={() => {
-                        const ventes = orders.filter(o => o.vendeur_id === v.id).reduce((s, o) => s + o.total, 0);
-                        const commission = Math.round(ventes * 0.1);
+                        const ventes = totalSales(orders.filter(o => o.vendeur_id === v.id));
+                        const commission = Math.round(ventes * COMMISSION / 100);
                         const msg = `Bonjour ${v.nom_boutique} 👋\n\n📊 *Récapitulatif du mois — Marché+*\n\n💰 Total ventes : ${fmt(ventes)}\n📉 Commission Marché+ (10%) : ${fmt(commission)}\n✅ Vos gains nets : ${fmt(ventes - commission)}\n\nMerci de nous envoyer *${fmt(commission)}* sur Orange Money au *91 09 05 23* avant le 05 du mois prochain.\n\nMerci pour votre confiance ! 🛍 Marché+`;
                         window.open(`https://wa.me/${v.whatsapp}?text=${encodeURIComponent(msg)}`, "_blank");
                       }} style={{ background: "#25D366", color: "#fff", border: "none", padding: "6px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>

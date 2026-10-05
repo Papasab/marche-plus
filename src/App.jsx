@@ -354,7 +354,7 @@ function ProductCard({ p, onSelect, onAdd, isFavorite, onToggleFav }) {
 }
 
 // ── Home Page ─────────────────────────────────────────────────────
-function HomePage({ products, onSelect, onAdd, isFavorite, onToggleFav, setPage, annonces, flashSales, promos }) {
+function HomePage({ products, onSelect, onAdd, isFavorite, onToggleFav, setPage, annonces, flashSales, promos, recentProducts, recommendations }) {
   const [slide, setSlide] = useState(0);
   const [timers, setTimers] = useState({});
   const [homeQuery, setHomeQuery] = useState("");
@@ -497,6 +497,44 @@ function HomePage({ products, onSelect, onAdd, isFavorite, onToggleFav, setPage,
         </button>
       </div>
 
+      <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8E0FF", padding: "18px 20px", marginBottom: 24, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+        {[
+          { icon: "✅", label: "Vendeurs vérifiés" },
+          { icon: "🔒", label: "Paiement sécurisé" },
+          { icon: "🚚", label: "Livraison rapide" },
+          { icon: "⭐", label: "4,8/5 avis clients" },
+        ].map(item => (
+          <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 10, background: "#F5F2FF", borderRadius: 12, padding: "12px 14px" }}>
+            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#EDE9FE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>{item.icon}</div>
+            <div style={{ fontWeight: 700, fontSize: 13, color: "#1A0A2E" }}>{item.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {recentProducts && recentProducts.length > 0 && (
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <h2 style={{ fontWeight: 800, fontSize: 18, color: "#1A0A2E" }}>🕘 Vu récemment</h2>
+            <button onClick={() => setPage("shop")} style={{ background: "none", border: "1px solid #6B21A8", color: "#6B21A8", padding: "6px 14px", borderRadius: 99, fontSize: 12, fontWeight: 600 }}>Voir tout →</button>
+          </div>
+          <div className="home-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px,1fr))", gap: 14 }}>
+            {recentProducts.slice(0, 4).map(p => <ProductCard key={p.id} p={p} onSelect={onSelect} onAdd={onAdd} isFavorite={isFavorite} onToggleFav={onToggleFav} />)}
+          </div>
+        </div>
+      )}
+
+      {recommendations && recommendations.length > 0 && (
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <h2 style={{ fontWeight: 800, fontSize: 18, color: "#1A0A2E" }}>✨ Pour vous</h2>
+            <button onClick={() => setPage("shop")} style={{ background: "none", border: "1px solid #6B21A8", color: "#6B21A8", padding: "6px 14px", borderRadius: 99, fontSize: 12, fontWeight: 600 }}>Voir tout →</button>
+          </div>
+          <div className="home-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px,1fr))", gap: 14 }}>
+            {recommendations.map(p => <ProductCard key={p.id} p={p} onSelect={onSelect} onAdd={onAdd} isFavorite={isFavorite} onToggleFav={onToggleFav} />)}
+          </div>
+        </div>
+      )}
+
       {/* Nos meilleures offres */}
       <div style={{ marginBottom: 32 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -570,15 +608,22 @@ function HomePage({ products, onSelect, onAdd, isFavorite, onToggleFav, setPage,
 // ── Shop Page ─────────────────────────────────────────────────────
 function ShopPage({ products, onAdd, onSelect, favorites, onToggleFav, isFavorite }) {
   const [search, setSearch] = useState("");
-  const [cat, setCat]       = useState("Tous");
+  const [cat, setCat] = useState("Tous");
+  const [sortBy, setSortBy] = useState("featured");
   const CATS = ["Tous", "Mode", "Électronique", "Maison", "Bureau"];
-  // Recherche intelligente avec tolérance aux fautes
+  const SORT_OPTIONS = [
+    { value: "featured", label: "Populaires" },
+    { value: "priceAsc", label: "Prix ↑" },
+    { value: "priceDesc", label: "Prix ↓" },
+    { value: "discount", label: "Promotions" },
+    { value: "name", label: "Nom A–Z" },
+  ];
+
   const searchMatch = (text, query) => {
     if (!query) return true;
     const t = text.toLowerCase();
     const q = query.toLowerCase();
     if (t.includes(q)) return true;
-    // Tolérance aux fautes (distance de Levenshtein simplifiée)
     const words = t.split(" ");
     return words.some(w => {
       if (Math.abs(w.length - q.length) > 2) return false;
@@ -590,16 +635,32 @@ function ShopPage({ products, onAdd, onSelect, favorites, onToggleFav, isFavorit
     });
   };
 
-  const filtered = products.filter(p =>
-    (cat === "Tous" || p.category === cat) &&
-    (searchMatch(p.name, search) || searchMatch(p.category || "", search) || searchMatch(p.description || "", search))
-  );
+  const filtered = products
+    .filter(p =>
+      (cat === "Tous" || p.category === cat) &&
+      (searchMatch(p.name, search) || searchMatch(p.category || "", search) || searchMatch(p.description || "", search))
+    )
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "priceAsc": return (a.price ?? 0) - (b.price ?? 0);
+        case "priceDesc": return (b.price ?? 0) - (a.price ?? 0);
+        case "discount": return (b.reduction ?? 0) - (a.reduction ?? 0);
+        case "name": return (a.name || "").localeCompare(b.name || "");
+        default: return (b.rating ?? 0) - (a.rating ?? 0);
+      }
+    });
+
   return (
     <div className="store-shop" style={{ maxWidth: 1100, margin: "0 auto", padding: "20px 16px" }}>
-      {/* Search + filter */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
         <input placeholder="🔍 Rechercher un produit..." value={search} onChange={e => setSearch(e.target.value)}
           style={{ flex: 1, minWidth: 200, padding: "11px 18px", borderRadius: 99, border: "1.5px solid #E8E0FF", fontSize: 14, background: "#fff" }} />
+        <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+          style={{ minWidth: 150, padding: "11px 16px", borderRadius: 99, border: "1.5px solid #E8E0FF", fontSize: 14, background: "#fff", color: "#1A0A2E" }}>
+          {SORT_OPTIONS.map(option => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </select>
         <button onClick={() => {
           if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) { alert("Recherche vocale non supportée sur ce navigateur"); return; }
           const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -611,19 +672,33 @@ function ShopPage({ products, onAdd, onSelect, favorites, onToggleFav, isFavorit
           🎤
         </button>
       </div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 20, overflowX: "auto", paddingBottom: 4 }}>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, overflowX: "auto", paddingBottom: 4, alignItems: "center" }}>
         {CATS.map(c => (
           <button key={c} onClick={() => setCat(c)} style={{ background: cat === c ? "#6B21A8" : "#fff", color: cat === c ? "#fff" : "#6B7280", border: `1.5px solid ${cat === c ? "#6B21A8" : "#E8E0FF"}`, padding: "8px 18px", borderRadius: 99, fontWeight: cat === c ? 700 : 500, fontSize: 13, flexShrink: 0 }}>
             {c}
           </button>
         ))}
+        {(search || cat !== "Tous") && (
+          <button onClick={() => { setSearch(""); setCat("Tous"); setSortBy("featured"); }} style={{ background: "#F5F2FF", color: "#6B21A8", border: "none", padding: "8px 14px", borderRadius: 99, fontWeight: 700, fontSize: 12, marginLeft: "auto" }}>
+            Réinitialiser
+          </button>
+        )}
       </div>
+
       {filtered.length === 0 ? (
         <div style={{ textAlign: "center", padding: "60px 0", color: "#9CA3AF" }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
           <div style={{ fontWeight: 600 }}>Aucun produit trouvé</div>
+          <div style={{ marginTop: 8, fontSize: 14 }}>Essayez un autre mot-clé ou réinitialisez les filtres.</div>
         </div>
       ) : (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, fontSize: 13, color: "#6B7280" }}>
+          <span>{filtered.length} produit{filtered.length > 1 ? "s" : ""} trouvé{filtered.length > 1 ? "s" : ""}</span>
+        </div>
+      )}
+
+      {filtered.length > 0 && (
         <div className="product-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
           {filtered.map(p => <ProductCard key={p.id} p={p} onSelect={onSelect} onAdd={onAdd} isFavorite={isFavorite} onToggleFav={onToggleFav} />)}
         </div>
@@ -718,11 +793,15 @@ const [saving, setSaving] = useState(false);
   );
 }
 
-function ProductDetailPage({ product: p, onAdd, onBack, isFavorite, onToggleFav, user }) {
+function ProductDetailPage({ product: p, onAdd, onBack, isFavorite, onToggleFav, user, onViewed }) {
   const [qty, setQty]         = useState(1);
   const [mainImg, setMainImg] = useState(p.image);
   const [selColor, setColor]  = useState("");
   const [selSize, setSize]    = useState("");
+
+  useEffect(() => {
+    if (p) onViewed?.(p);
+  }, [p, onViewed]);
   const images = p.images ? (Array.isArray(p.images) ? p.images : p.images.split(",").filter(Boolean)) : [p.image];
   const colors = p.colors ? p.colors.split(",").map(s => s.trim()) : [];
   const sizes  = p.sizes  ? p.sizes.split(",").map(s => s.trim())  : [];
@@ -1544,8 +1623,20 @@ export default function App() {
   const [loading, setLoading]           = useState(true);
   const [page, setPage]                 = useState("home");
   const [products, setProducts]         = useState([]);
-  const [cart, setCart]                 = useState([]);
-  const [favorites, setFavorites]       = useState([]);
+  const [cart, setCart] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("march_plus_cart") || "[]");
+    } catch {
+      return [];
+    }
+  });
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("march_plus_favorites") || "[]");
+    } catch {
+      return [];
+    }
+  });
   const [orders, setOrders]             = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -1562,6 +1653,19 @@ export default function App() {
     document.body.style.background = darkMode ? "#0F0A1E" : "#F5F2FF";
     document.body.style.color = darkMode ? "#fff" : "#1A0A2E";
   }, [darkMode]);
+
+  useEffect(() => {
+    localStorage.setItem("march_plus_cart", JSON.stringify(cart));
+  }, [cart]);
+
+  useEffect(() => {
+    localStorage.setItem("march_plus_favorites", JSON.stringify(favorites));
+  }, [favorites]);
+
+  useEffect(() => {
+    localStorage.setItem("march_plus_recent", JSON.stringify(recentlyViewed));
+  }, [recentlyViewed]);
+
   const [vendorPage, setVendorPage]     = useState(null);
   const [myVendor, setMyVendor]         = useState(null);
   const [myParrainage, setMyParrainage] = useState(null);
@@ -1570,6 +1674,13 @@ export default function App() {
   const [promoLabel, setPromoLabel]     = useState("");
   const [points, setPoints]             = useState(0);
   const [toast, setToast]               = useState("");
+  const [recentlyViewed, setRecentlyViewed] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("march_plus_recent") || "[]");
+    } catch {
+      return [];
+    }
+  });
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
 
@@ -1646,6 +1757,19 @@ export default function App() {
   const toggleFavorite = (p) => setFavorites(f => f.find(i => i.id === p.id) ? f.filter(i => i.id !== p.id) : [...f, p]);
   const isFavorite     = (id) => favorites.some(f => f.id === id);
 
+  const addRecentlyViewed = (product) => {
+    if (!product || !product.id) return;
+    setRecentlyViewed(prev => {
+      const next = [product, ...prev.filter(item => item.id !== product.id)].slice(0, 4);
+      return next;
+    });
+  };
+
+  const openProduct = (product) => {
+    addRecentlyViewed(product);
+    setSelectedProduct(product);
+  };
+
   // Promo
   const applyPromo = (code) => {
     const promo = PROMO_CODES[code];
@@ -1701,6 +1825,12 @@ export default function App() {
   };
 
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
+  const recommendations = products.filter(product => {
+    if (!favorites.length) return product.reduction > 0 || product.rating >= 4.5;
+    const favoriteCategories = [...new Set(favorites.map(item => item.category).filter(Boolean))];
+    if (!favoriteCategories.length) return product.reduction > 0 || product.rating >= 4.5;
+    return favoriteCategories.includes(product.category) || product.reduction > 0 || product.rating >= 4.5;
+  }).filter(product => !favorites.some(item => item.id === product.id)).slice(0, 4);
 
   if (loading) return <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "linear-gradient(135deg, #4C1D95, #6B21A8)" }}><div style={{ color: "#fff", fontSize: 24, fontWeight: 800 }}>Marché+ ⏳</div></div>;
   if (!user)   return <AuthPage onAuth={u => setUser(u)} />;
@@ -1765,9 +1895,9 @@ export default function App() {
 />
 
       {/* Pages */}
-      {!showProfile && !showParrainage && !vendorPage && page === "home" && !selectedProduct && <HomePage products={products} annonces={annonces} flashSales={flashSales} promos={promos} onSelect={setSelectedProduct} onAdd={addToCart} isFavorite={isFavorite} onToggleFav={toggleFavorite} setPage={handlePageChange} />}
-      {!showProfile && !showParrainage && !vendorPage && page === "shop"     && !selectedProduct && <ShopPage products={products} onAdd={addToCart} onSelect={setSelectedProduct} favorites={favorites} onToggleFav={toggleFavorite} isFavorite={isFavorite} />}
-      {!showProfile && !showParrainage && !vendorPage && selectedProduct     && <ProductDetailPage product={selectedProduct} onAdd={addToCart} onBack={() => setSelectedProduct(null)} isFavorite={isFavorite} onToggleFav={toggleFavorite} user={user} />}
+      {!showProfile && !showParrainage && !vendorPage && page === "home" && !selectedProduct && <HomePage products={products} annonces={annonces} flashSales={flashSales} promos={promos} onSelect={openProduct} onAdd={addToCart} isFavorite={isFavorite} onToggleFav={toggleFavorite} setPage={handlePageChange} recentProducts={recentlyViewed} recommendations={recommendations} />}
+      {!showProfile && !showParrainage && !vendorPage && page === "shop"     && !selectedProduct && <ShopPage products={products} onAdd={addToCart} onSelect={openProduct} favorites={favorites} onToggleFav={toggleFavorite} isFavorite={isFavorite} />}
+      {!showProfile && !showParrainage && !vendorPage && selectedProduct     && <ProductDetailPage product={selectedProduct} onAdd={addToCart} onBack={() => setSelectedProduct(null)} isFavorite={isFavorite} onToggleFav={toggleFavorite} user={user} onViewed={addRecentlyViewed} />}
       {!showProfile && !showParrainage && !vendorPage && page === "cart"     && <CartPage cart={cart} onRemove={removeFromCart} onUpdateQty={updateQty} goToShop={() => handlePageChange("shop")} goToPayment={() => handlePageChange("payment")} promoCode={promoCode} promoDiscount={promoDiscount} promoLabel={promoLabel} onApplyPromo={applyPromo} onRemovePromo={removePromo} points={points} />}
       {!showProfile && !showParrainage && !vendorPage && page === "payment"  && <PaymentPage cart={cart} onConfirm={placeOrder} promoDiscount={promoDiscount} promoCode={promoCode} />}
       
