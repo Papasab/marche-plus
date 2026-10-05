@@ -1647,6 +1647,13 @@ export default function App() {
   const [promos, setPromos] = useState([]);
   const [showChat, setShowChat] = useState(false);
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem("darkMode") === "true");
+  const [recentlyViewed, setRecentlyViewed] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("march_plus_recent") || "[]");
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
     localStorage.setItem("darkMode", darkMode);
@@ -1674,13 +1681,6 @@ export default function App() {
   const [promoLabel, setPromoLabel]     = useState("");
   const [points, setPoints]             = useState(0);
   const [toast, setToast]               = useState("");
-  const [recentlyViewed, setRecentlyViewed] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("march_plus_recent") || "[]");
-    } catch {
-      return [];
-    }
-  });
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
 
