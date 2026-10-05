@@ -432,7 +432,7 @@ function AdminDashboard({ onLogout }) {
   const [users, setUsers] = useState([]);
   const [faqItems, setFaqItems] = useState([
     { q: "Comment passer une commande ?", a: "Ajoutez un produit au panier, puis cliquez sur Commander et suivez les étapes." },
-    { q: "Quels sont les modes de paiement ?", a: "Nous acceptons Orange Money, le paiement à la livraison et Mastercard." },
+    { q: "Quels sont les modes de paiement ?", a: "Nous acceptons le paiement en ligne et le paiement à la livraison." },
     { q: "Comment suivre ma commande ?", a: "Allez dans l'onglet Suivi et entrez votre numéro de commande (ex: CMD-123456)." },
     { q: "Puis-je retourner un produit ?", a: "Oui, contactez-nous sur WhatsApp dans les 48h après réception." },
     { q: "Quels sont les délais de livraison ?", a: "La livraison prend généralement 1 à 3 jours selon votre localisation." },

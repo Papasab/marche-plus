@@ -47,7 +47,7 @@ function ConditionsPage({ onBack }) {
         {[
           { title: "1. Présentation de Marché+", content: "Marché+ est une marketplace en ligne basée au Mali qui permet aux vendeurs de proposer leurs produits et aux clients de les acheter facilement. Nous facilitons les transactions entre acheteurs et vendeurs tout en prélevant une commission de 10% sur chaque vente." },
           { title: "2. Inscription et compte", content: "Pour utiliser Marché+, vous devez créer un compte avec une adresse email valide. Vous êtes responsable de la sécurité de votre compte et de toutes les activités qui s'y déroulent. Marché+ se réserve le droit de suspendre tout compte en cas d'abus." },
-          { title: "3. Commandes et paiements", content: "Les commandes sont passées en ligne et confirmées par WhatsApp. Le paiement s'effectue par Orange Money, Moov Money ou à la livraison. Après confirmation du paiement, la commande est traitée dans les 24-48 heures." },
+          { title: "3. Commandes et paiements", content: "Les commandes sont passées en ligne et confirmées par WhatsApp. Le paiement s'effectue en ligne ou à la livraison. Après confirmation du paiement, la commande est traitée dans les 24-48 heures." },
           { title: "4. Livraison", content: "Marché+ assure la livraison dans les principales villes du Mali. Les délais de livraison varient entre 1 et 5 jours ouvrables selon votre localisation. Les frais de livraison sont calculés en fonction de la distance." },
           { title: "5. Retours et remboursements", content: "Un produit peut être retourné dans les 48 heures suivant la réception si il est défectueux ou ne correspond pas à la description. Contactez-nous sur WhatsApp au +223 91 09 05 23 pour initier un retour. Les remboursements sont effectués dans les 5 jours ouvrables." },
           { title: "6. Vendeurs", content: "Les vendeurs doivent s'inscrire et être approuvés par Marché+ avant de vendre. Une commission de 10% est prélevée sur chaque vente. Les vendeurs sont responsables de la qualité et de la conformité de leurs produits." },
@@ -990,18 +990,15 @@ function CartPage({ cart, onRemove, onUpdateQty, goToShop, goToPayment, promoCod
 // ── Payment Page ──────────────────────────────────────────────────
 function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState({ name: "", phone: "", address: "", method: "mobile" });
+  const [form, setForm] = useState({ name: "", phone: "", address: "", method: "paydunya" });
   const [errors, setErrors] = useState({});
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const discount = Math.round(subtotal * promoDiscount / 100);
   const total    = subtotal - discount;
   const STEPS    = ["Livraison", "Paiement", "Confirmation"];
   const METHODS  = [
-    { key: "mobile", label: "Orange Money", sub: "Paiement via Orange Money", icon: "🟠" },
-    { key: "wave", label: "Wave", sub: "Paiement via Wave", icon: "🌊" },
-    { key: "moov", label: "Moov Money", sub: "Paiement via Moov Money", icon: "🔵" },
-    { key: "paydunya", label: "Paiement en ligne", sub: "Orange Money, Moov Money, Carte bancaire", icon: "💳" },
-    { key: "cash",   label: "À la livraison", sub: "Payez en espèces à réception", icon: "💵" },
+    { key: "paydunya", label: "Paiement en ligne", sub: "Paiement sécurisé par carte ou wallet", icon: "💳" },
+    { key: "cash", label: "À la livraison", sub: "Payez en espèces à réception", icon: "💵" },
   ];
 
   const StepBar = () => (
@@ -1090,46 +1087,11 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
             </div>
           )}
 
-          {(form.method === "mobile" || form.method === "wave" || form.method === "moov") && (
-            <div style={{ background: form.method === "wave" ? "#E8F5E9" : form.method === "moov" ? "#E3F2FD" : "#FEF3C7", borderRadius: 12, padding: "16px", marginTop: 14, border: `1px solid ${form.method === "wave" ? "#4CAF50" : form.method === "moov" ? "#2196F3" : "#D4AF37"}` }}>
-              <div style={{ fontWeight: 700, fontSize: 15, color: form.method === "wave" ? "#4CAF50" : form.method === "moov" ? "#2196F3" : "#D4AF37", marginBottom: 10 }}>
-                {form.method === "wave" ? "🌊 Paiement Wave" : form.method === "moov" ? "🔵 Paiement Moov Money" : "🟠 Paiement Orange Money"}
-              </div>
-              {[
-                form.method === "wave" ? "Ouvrez l'application Wave" : `Composez ${form.method === "moov" ? "#155#" : "#144#"} sur votre téléphone`,
-                form.method === "wave" ? 'Appuyez sur "Envoyer"' : 'Choisissez "Transfert d\'argent"',
-                `Entrez le numéro : ${form.method === "wave" ? "91 09 05 23" : form.method === "moov" ? "91 09 05 23" : "91 09 05 23"}`,
-                `Entrez le montant : ${fmt(cart.reduce((s,i) => s+i.price*i.qty, 0) - Math.round(cart.reduce((s,i) => s+i.price*i.qty, 0) * promoDiscount / 100))}`,
-                "Confirmez avec votre code secret",
-              ].map((s, i) => (
-                <div key={i} style={{ display: "flex", gap: 10, marginBottom: 8, fontSize: 13 }}>
-                  <span style={{ background: form.method === "wave" ? "#4CAF50" : form.method === "moov" ? "#2196F3" : "#6B21A8", color: "#fff", width: 20, height: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i+1}</span>
-                  <span>{s}</span>
-                </div>
-              ))}
-              <div style={{ background: "rgba(0,0,0,0.05)", borderRadius: 8, padding: "8px 12px", marginTop: 8, fontSize: 12, color: "#555" }}>
-                ⚠ Envoyez la capture du paiement sur WhatsApp après confirmation
-              </div>
-            </div>
-          )}
-
-        {(form.method === "mobile" && false) && (
-            <div style={{ background: "#FEF3C7", borderRadius: 12, padding: "16px", marginTop: 14, border: "1px solid #D4AF37" }}>
-              <div style={{ fontWeight: 700, fontSize: 15, color: "#D4AF37", marginBottom: 10 }}>🟠 Paiement Orange Money</div>
-              {[
-                "Composez #144# sur votre téléphone",
-                'Choisissez "Transfert d\'argent"',
-                `Entrez le numéro : 91 09 05 23`,
-                `Entrez le montant : ${fmt(total)}`,
-                "Confirmez avec votre code secret",
-              ].map((s, i) => (
-                <div key={i} style={{ display: "flex", gap: 10, marginBottom: 8, fontSize: 13 }}>
-                  <span style={{ background: "#6B21A8", color: "#fff", width: 20, height: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i+1}</span>
-                  <span dangerouslySetInnerHTML={{ __html: s.replace("91 09 05 23", "<strong style='color:#DC2626'>91 09 05 23</strong>").replace(fmt(total), `<strong style='color:#D4AF37'>${fmt(total)}</strong>`) }} />
-                </div>
-              ))}
-              <div style={{ background: "#FEE2E2", borderRadius: 8, padding: "8px 12px", marginTop: 8, fontSize: 12, color: "#DC2626" }}>
-                ⚠ Envoyez la capture du paiement sur WhatsApp après confirmation
+          {form.method === "cash" && (
+            <div style={{ background: "#F0FDF4", borderRadius: 12, padding: "16px", marginTop: 14, border: "1px solid #16A34A" }}>
+              <div style={{ fontWeight: 700, fontSize: 15, color: "#15803D", marginBottom: 10 }}>💵 Paiement à la livraison</div>
+              <div style={{ fontSize: 13, color: "#4B5563", lineHeight: 1.6 }}>
+                Vous payez le montant total à la réception de votre commande, selon le mode de paiement convenu avec le livreur.
               </div>
             </div>
           )}
@@ -1785,7 +1747,7 @@ export default function App() {
     const discount  = Math.round(cartTotal * promoDiscount / 100);
     const total     = cartTotal - discount;
     const orderId   = genId();
-    const methodLabel = { mobile: "Mobile Money", cash: "À la livraison", card: "Carte bancaire" }[form.method];
+    const methodLabel = { paydunya: "Paiement en ligne", cash: "À la livraison" }[form.method] || "Paiement en ligne";
 
     // Save order
     const { error } = await supabase.from("commandes").insert({
