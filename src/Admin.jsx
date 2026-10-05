@@ -16,6 +16,8 @@ const isCancelled = (order) => order?.status === "Annulé";
 const salesOrders = (orders) => orders.filter(order => !isCancelled(order));
 const totalSales = (orders) => salesOrders(orders).reduce((sum, order) => sum + orderAmount(order), 0);
 const commissionAmount = (orders) => Math.round(totalSales(orders) * COMMISSION / 100);
+const isDeliveredStatus = (status) => status === "Livré" || status === "Livrée";
+const isDeliveryPending = (status) => status === "En cours" || status === "En transit";
 
 const STATUS_COLORS = {
   "En cours":   { bg: "#191b1f", color: "#1a56db" },
@@ -422,6 +424,9 @@ function AdminDashboard({ onLogout }) {
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [vendors, setVendors] = useState([]);
+  const [livreurs, setLivreurs] = useState([]);
+  const [livraisons, setLivraisons] = useState([]);
+  const [newLivreur, setNewLivreur] = useState({ nom: "", telephone: "", zone: "", statut: "disponible" });
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState("7j");
   const [showProductForm, setShowProductForm] = useState(false);
@@ -441,22 +446,26 @@ function AdminDashboard({ onLogout }) {
   const [newFaq, setNewFaq] = useState({ q: "", a: "" });
   const [showFaqForm, setShowFaqForm] = useState(false);
 
-  const loadData = async () => {
+  const loadAll = async () => {
     setLoading(true);
-    const [{ data: o }, { data: p }, { data: v }, { data: u }] = await Promise.all([
+    const [{ data: o }, { data: p }, { data: v }, { data: u }, { data: l }, { data: lv }] = await Promise.all([
       supabase.from("commandes").select("*").order("created_at", { ascending: false }),
       supabase.from("produits").select("*").order("id"),
       supabase.from("vendeurs").select("*").order("created_at", { ascending: false }),
       supabase.from("utilisateurs").select("*").order("created_at", { ascending: false }),
+      supabase.from("livreurs").select("*").order("created_at", { ascending: false }),
+      supabase.from("livraisons").select("*").order("created_at", { ascending: false }),
     ]);
     setOrders(o || []);
     setProducts(p || []);
     setVendors(v || []);
     setUsers(u || []);
+    setLivreurs(l || []);
+    setLivraisons(lv || []);
     setLoading(false);
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadAll(); }, []);
 
   const totalRevenue  = totalSales(orders);
   const delivered     = orders.filter(o => o.status === "Livré").length;
@@ -517,13 +526,13 @@ function AdminDashboard({ onLogout }) {
     }
     setSaving(false);
     setShowProductForm(false);
-    loadData();
+    loadAll();
   };
 
   const deleteProduct = async (id) => {
     if (!window.confirm("Supprimer ce produit définitivement ?")) return;
     await supabase.from("produits").delete().eq("id", id);
-    loadData();
+    loadAll();
   };
 
   const updateOrderStatus = async (id, status) => {
@@ -984,7 +993,7 @@ ${month}
 ` +
                   `📦 Commandes: ${monthOrders.length}
 ` +
-                  `✅ Livrées: ${monthOrders.filter(o => o.status === "Livré").length}
+                  `✅ Livrées: ${monthOrders.filter(o => isDeliveredStatus(o.status)).length}
 ` +
                   `⏳ En cours: ${monthOrders.filter(o => o.status === "En cours").length}
 
@@ -1060,7 +1069,7 @@ ${month}
                   <button onClick={async () => {
                     if (!newLivreur.nom || !newLivreur.telephone) return;
                     await supabase.from("livreurs").insert(newLivreur);
-                    setNewLivreur({}); setShowAddLivreur(false); loadAll();
+                    setNewLivreur({ nom: "", telephone: "", zone: "", statut: "disponible" }); setShowAddLivreur(false); loadAll();
                   }} style={{ background: `linear-gradient(135deg, #059669, #047857)`, color: "#fff", border: "none", padding: "11px 24px", borderRadius: 99, fontWeight: 700, fontSize: 14 }}>✓ Enregistrer</button>
                   <button onClick={() => setShowAddLivreur(false)} style={{ background: BG, color: "#6B7280", border: "none", padding: "11px 20px", borderRadius: 99 }}>Annuler</button>
                 </div>
@@ -1130,100 +1139,37 @@ ${month}
           </>
         )}
 
-        {tab === "rapport" && (
+        {tab === "livraison" && (
           <>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
               <div>
-                <h2 style={{ fontWeight: 800, fontSize: 22, color: "#1A0A2E" }}>📈 Rapport mensuel</h2>
-                <p style={{ fontSize: 13, color: "#9CA3AF" }}>{new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}</p>
-              </div>
-              <button onClick={() => {
-                const rapport = `📊 *RAPPORT MENSUEL — MARCHÉ+*\n${new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}\n\n💰 CA total : ${fmt(orders.reduce((s,o) => s+o.total, 0))}\n📦 Commandes : ${orders.length}\n🛍 Produits : ${products.length}\n🏪 Vendeurs : ${vendors.length}\n👥 Clients : ${users.length}\n\n✅ Livrées : ${orders.filter(o=>o.status==="Livrée").length}\n⏳ En cours : ${orders.filter(o=>o.status==="En cours").length}\n❌ Annulées : ${orders.filter(o=>o.status==="Annulé").length}\n\n📉 Commission totale : ${fmt(Math.round(orders.reduce((s,o)=>s+o.total,0)*0.1))}\n\nMarché+ 🛍`;
-                window.open(`https://wa.me/22391090523?text=${encodeURIComponent(rapport)}`, "_blank");
-              }} style={{ background: "#25D366", color: "#fff", border: "none", padding: "11px 22px", borderRadius: 99, fontWeight: 700, fontSize: 14 }}>
-                📱 Envoyer sur WhatsApp
-              </button>
-            </div>
-
-            {/* Stats globales */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px,1fr))", gap: 14, marginBottom: 24 }}>
-              {[
-                { label: "CA total", value: fmt(totalSales(orders)), icon: "💰", color: "#0F9D68" },
-                { label: "Commission (10%)", value: fmt(commissionAmount(orders)), icon: "📊", color: "#DC2626" },
-                { label: "Commandes total", value: orders.length, icon: "📦", color: "#D4AF37" },
-                { label: "Clients inscrits", value: users.length, icon: "👥", color: "#059669" },
-                { label: "Produits en ligne", value: products.length, icon: "🛍", color: "#6B21A8" },
-                { label: "Vendeurs actifs", value: vendors.filter(v=>v.statut==="approuve").length, icon: "🏪", color: "#1a56db" },
-              ].map(s => (
-                <div key={s.label} style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8E0FF", padding: "18px 16px", position: "relative", overflow: "hidden" }}>
-                  <div style={{ position: "absolute", top: 0, left: 0, width: 4, height: "100%", background: s.color }} />
-                  <div style={{ fontSize: 26, marginBottom: 8 }}>{s.icon}</div>
-                  <div style={{ fontWeight: 900, fontSize: 20, color: s.color }}>{s.value}</div>
-                  <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 2 }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Statuts commandes */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
-              <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8E0FF", padding: "20px" }}>
-                <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 16, color: "#1A0A2E" }}>📦 Statuts des commandes</h3>
-                {[
-                  { label: "En cours", color: "#6B21A8", count: orders.filter(o=>o.status==="En cours").length },
-                  { label: "En transit", color: "#D4AF37", count: orders.filter(o=>o.status==="En transit").length },
-                  { label: "Livrée", color: "#059669", count: orders.filter(o=>o.status==="Livrée").length },
-                  { label: "Annulé", color: "#DC2626", count: orders.filter(o=>o.status==="Annulé").length },
-                ].map(s => (
-                  <div key={s.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <div style={{ width: 10, height: 10, borderRadius: "50%", background: s.color }} />
-                      <span style={{ fontSize: 14 }}>{s.label}</span>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <div style={{ width: 100, height: 6, background: "#E8E0FF", borderRadius: 99, overflow: "hidden" }}>
-                        <div style={{ width: `${orders.length ? (s.count/orders.length*100) : 0}%`, height: "100%", background: s.color, borderRadius: 99 }} />
-                      </div>
-                      <span style={{ fontWeight: 700, color: s.color, fontSize: 14, minWidth: 20 }}>{s.count}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Top vendeurs */}
-              <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8E0FF", padding: "20px" }}>
-                <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 16, color: "#1A0A2E" }}>🏆 Top vendeurs</h3>
-                {vendors.map(v => {
-                  const ventes = totalSales(orders.filter(o=>o.vendeur_id===v.id));
-                  return { ...v, ventes };
-                }).sort((a,b)=>b.ventes-a.ventes).slice(0,5).map((v, i) => (
-                  <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: "50%", background: i===0?"#D4AF37":i===1?"#9CA3AF":i===2?"#CD7F32":"#E8E0FF", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 12, color: i<3?"#fff":"#6B21A8" }}>{i+1}</div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, fontSize: 13 }}>{v.nom_boutique}</div>
-                      <div style={{ fontSize: 11, color: "#9CA3AF" }}>{fmt(v.ventes)}</div>
-                    </div>
-                  </div>
-                ))}
-                {vendors.length === 0 && <p style={{ color: "#9CA3AF", fontSize: 13 }}>Aucun vendeur</p>}
+                <h2 style={{ fontWeight: 800, fontSize: 22, color: "#1A0A2E" }}>🚚 Livraisons</h2>
+                <p style={{ fontSize: 13, color: "#9CA3AF" }}>Suivi des commandes en cours et assignées</p>
               </div>
             </div>
 
-            {/* Top produits */}
-            <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8E0FF", padding: "20px" }}>
-              <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 16, color: "#1A0A2E" }}>🛍 Top produits vendus</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px,1fr))", gap: 12 }}>
-                {products.slice(0,6).map((p, i) => (
-                  <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px", background: "#F5F2FF", borderRadius: 12 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: 8, overflow: "hidden", background: "#E8E0FF", flexShrink: 0 }}>
-                      {p.image ? <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>🛍</div>}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px,1fr))", gap: 14 }}>
+              {orders.filter(o => isDeliveryPending(o.status) || isDeliveredStatus(o.status)).map(o => {
+                const assigned = livraisons.find(l => l.commande_id === o.id);
+                const livreur = assigned ? livreurs.find(l => l.id === assigned.livreur_id) : null;
+                return (
+                  <div key={o.id} style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8E0FF", padding: "18px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                      <div style={{ fontWeight: 800, fontSize: 15, color: "#6B21A8" }}>{o.id}</div>
+                      <span style={{ ...S.badge(STATUS_COLORS[o.status]?.bg || "#E8E0FF", STATUS_COLORS[o.status]?.color || "#6B21A8") }}>{o.status}</span>
                     </div>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: 12 }}>{p.name}</div>
-                      <div style={{ fontSize: 11, color: "#D4AF37", fontWeight: 700 }}>{fmt(p.price)}</div>
+                    <div style={{ fontSize: 13, color: "#555", marginBottom: 4 }}>👤 {o.client_nom}</div>
+                    <div style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 4 }}>📍 {o.client_adresse}</div>
+                    <div style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 8 }}>💰 {fmt(orderAmount(o))}</div>
+                    <div style={{ background: "#F5F2FF", borderRadius: 10, padding: "10px 12px", fontSize: 12, color: "#4B5563" }}>
+                      {livreur ? `📦 Assigné à ${livreur.nom} · ${livreur.zone || "Zone non précisée"}` : "📦 Aucun livreur assigné"}
                     </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
+              {orders.filter(o => isDeliveryPending(o.status) || isDeliveredStatus(o.status)).length === 0 && (
+                <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "40px 20px", color: "#9CA3AF" }}>Aucune livraison enregistrée</div>
+              )}
             </div>
           </>
         )}
@@ -1233,7 +1179,7 @@ ${month}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
               <h2 style={{ fontWeight: 800, fontSize: 22, color: "#1A0A2E" }}>📈 Rapport mensuel</h2>
               <button onClick={() => {
-                const rapport = `📊 *RAPPORT MENSUEL — MARCHÉ+*\n${new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}\n\n💰 CA total : ${fmt(orders.reduce((s,o) => s+o.total, 0))}\n📦 Commandes : ${orders.length}\n🛍 Produits : ${products.length}\n🏪 Vendeurs : ${vendors.length}\n👥 Clients : ${users.length}\n\n✅ Livrées : ${orders.filter(o=>o.status==="Livré").length}\n⏳ En cours : ${orders.filter(o=>o.status==="En cours").length}\n❌ Annulées : ${orders.filter(o=>o.status==="Annulé").length}\n\n📉 Commission totale : ${fmt(Math.round(orders.reduce((s,o)=>s+o.total,0)*0.1))}\n\nMarché+ 🛍`;
+                const rapport = `📊 *RAPPORT MENSUEL — MARCHÉ+*\n${new Date().toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}\n\n💰 CA total : ${fmt(totalSales(orders))}\n📦 Commandes : ${orders.length}\n🛍 Produits : ${products.length}\n🏪 Vendeurs : ${vendors.length}\n👥 Clients : ${users.length}\n\n✅ Livrées : ${orders.filter(o => isDeliveredStatus(o.status)).length}\n⏳ En cours : ${orders.filter(o => o.status === "En cours").length}\n❌ Annulées : ${orders.filter(o => o.status === "Annulé").length}\n\n📉 Commission totale : ${fmt(commissionAmount(orders))}\n\nMarché+ 🛍`;
                 window.open(`https://wa.me/22391090523?text=${encodeURIComponent(rapport)}`, "_blank");
               }} style={{ background: "#25D366", color: "#fff", border: "none", padding: "10px 20px", borderRadius: 99, fontWeight: 700, fontSize: 14, cursor: "pointer" }}>📱 Envoyer sur WhatsApp</button>
             </div>
