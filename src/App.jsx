@@ -802,6 +802,9 @@ function ProductDetailPage({ product: p, onAdd, onBack, isFavorite, onToggleFav,
   useEffect(() => {
     if (p) onViewed?.(p);
   }, [p, onViewed]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [p.id]);
   const images = p.images ? (Array.isArray(p.images) ? p.images : p.images.split(",").filter(Boolean)) : [p.image];
   const colors = p.colors ? p.colors.split(",").map(s => s.trim()) : [];
   const sizes  = p.sizes  ? p.sizes.split(",").map(s => s.trim())  : [];
@@ -822,7 +825,7 @@ function ProductDetailPage({ product: p, onAdd, onBack, isFavorite, onToggleFav,
         <button onClick={() => navigator.clipboard.writeText(window.location.href)} style={{ background: "#F5F2FF", color: "#6B21A8", border: "none", padding: "8px 16px", borderRadius: 99, fontSize: 13, fontWeight: 600 }}>Copier lien</button>
       </div>
 
-      <div className="detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 28 }}>
+      <div className="detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 28, alignItems: "start" }}>
         {/* Images */}
         <div>
           <div style={{ borderRadius: 16, overflow: "hidden", height: 320, background: "#F5F2FF", marginBottom: 12, position: "relative" }}>
@@ -897,9 +900,9 @@ function ProductDetailPage({ product: p, onAdd, onBack, isFavorite, onToggleFav,
               </div>
             </div>
           )}
-        <AvisSection produitId={p.id} user={user} />
         </div>
       </div>
+      <AvisSection produitId={p.id} user={user} />
     </div>
   );
 }
