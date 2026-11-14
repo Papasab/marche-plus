@@ -20,6 +20,17 @@ const PROMO_CODES = {
 };
 
 // ── Conditions d'utilisation ──────────────────────────────────────
+const TERMS_SECTIONS = [
+  { title: "1. Présentation de Marché+", content: "Marché+ est une marketplace en ligne basée au Mali qui permet aux vendeurs de proposer leurs produits et aux clients de les acheter facilement. Nous facilitons les transactions entre acheteurs et vendeurs tout en prélevant une commission de 10% sur chaque vente." },
+  { title: "2. Inscription et compte", content: "Pour utiliser Marché+, vous devez créer un compte avec une adresse email valide. Vous êtes responsable de la sécurité de votre compte et de toutes les activités qui s'y déroulent. Marché+ se réserve le droit de suspendre tout compte en cas d'abus." },
+  { title: "3. Commandes et paiements", content: "Les commandes sont passées en ligne et confirmées par WhatsApp. Le paiement s'effectue à la livraison. Après confirmation de la commande, elle est traitée dans les 24-48 heures." },
+  { title: "4. Livraison", content: "Marché+ assure la livraison dans les principales villes du Mali. Les délais de livraison varient entre 1 et 5 jours ouvrables selon votre localisation. Les frais de livraison sont calculés en fonction de la distance." },
+  { title: "5. Retours et remboursements", content: "Un produit peut être retourné dans les 48 heures suivant la réception s'il est défectueux ou ne correspond pas à la description. Contactez-nous sur WhatsApp au +223 91 09 05 23 pour initier un retour. Les remboursements sont effectués dans les 5 jours ouvrables." },
+  { title: "6. Vendeurs", content: "Les vendeurs doivent s'inscrire et être approuvés par Marché+ avant de vendre. Une commission de 10% est prélevée sur chaque vente. Les vendeurs sont responsables de la qualité et de la conformité de leurs produits." },
+  { title: "7. Protection des données", content: "Marché+ collecte et utilise vos données personnelles uniquement pour traiter vos commandes et améliorer nos services. Vos données ne sont jamais vendues à des tiers. Vous pouvez demander la suppression de vos données à tout moment." },
+  { title: "8. Contact", content: "Pour toute question, contactez-nous sur WhatsApp au +223 91 09 05 23 ou par email à kone91139@gmail.com. Notre équipe est disponible du lundi au samedi de 8h à 20h." },
+];
+
 function ConditionsPage({ onBack }) {
   return (
     <div className="store-conditions" style={{ maxWidth: 800, margin: "0 auto", padding: "28px 16px" }}>
@@ -28,16 +39,7 @@ function ConditionsPage({ onBack }) {
         <h1 style={{ fontWeight: 900, fontSize: 26, color: "#1A0A2E", marginBottom: 6 }}>📋 Conditions d'utilisation</h1>
         <p style={{ fontSize: 13, color: "#9CA3AF", marginBottom: 28 }}>Dernière mise à jour : {new Date().toLocaleDateString("fr-FR")}</p>
 
-        {[
-          { title: "1. Présentation de Marché+", content: "Marché+ est une marketplace en ligne basée au Mali qui permet aux vendeurs de proposer leurs produits et aux clients de les acheter facilement. Nous facilitons les transactions entre acheteurs et vendeurs tout en prélevant une commission de 10% sur chaque vente." },
-          { title: "2. Inscription et compte", content: "Pour utiliser Marché+, vous devez créer un compte avec une adresse email valide. Vous êtes responsable de la sécurité de votre compte et de toutes les activités qui s'y déroulent. Marché+ se réserve le droit de suspendre tout compte en cas d'abus." },
-          { title: "3. Commandes et paiements", content: "Les commandes sont passées en ligne et confirmées par WhatsApp. Le paiement s'effectue en ligne ou à la livraison. Après confirmation du paiement, la commande est traitée dans les 24-48 heures." },
-          { title: "4. Livraison", content: "Marché+ assure la livraison dans les principales villes du Mali. Les délais de livraison varient entre 1 et 5 jours ouvrables selon votre localisation. Les frais de livraison sont calculés en fonction de la distance." },
-          { title: "5. Retours et remboursements", content: "Un produit peut être retourné dans les 48 heures suivant la réception si il est défectueux ou ne correspond pas à la description. Contactez-nous sur WhatsApp au +223 91 09 05 23 pour initier un retour. Les remboursements sont effectués dans les 5 jours ouvrables." },
-          { title: "6. Vendeurs", content: "Les vendeurs doivent s'inscrire et être approuvés par Marché+ avant de vendre. Une commission de 10% est prélevée sur chaque vente. Les vendeurs sont responsables de la qualité et de la conformité de leurs produits." },
-          { title: "7. Protection des données", content: "Marché+ collecte et utilise vos données personnelles uniquement pour traiter vos commandes et améliorer nos services. Vos données ne sont jamais vendues à des tiers. Vous pouvez demander la suppression de vos données à tout moment." },
-          { title: "8. Contact", content: "Pour toute question, contactez-nous sur WhatsApp au +223 91 09 05 23 ou par email à kone91139@gmail.com. Notre équipe est disponible du lundi au samedi de 8h à 20h." },
-        ].map(s => (
+        {TERMS_SECTIONS.map(s => (
           <div key={s.title} style={{ marginBottom: 24 }}>
             <h2 style={{ fontWeight: 700, fontSize: 16, color: "#6B21A8", marginBottom: 8 }}>{s.title}</h2>
             <p style={{ fontSize: 14, color: "#6B7280", lineHeight: 1.8 }}>{s.content}</p>
@@ -66,6 +68,7 @@ function AuthPage({ onAuth }) {
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState("");
   const [showConditions, setShowConditions] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const submit = async () => {
     const normalizedEmail = email.trim().toLowerCase();
@@ -81,6 +84,10 @@ function AuthPage({ onAuth }) {
       setError("Les mots de passe ne correspondent pas.");
       return;
     }
+    if (mode === "signup" && !acceptedTerms) {
+      setError("Veuillez lire et accepter les conditions d'utilisation.");
+      return;
+    }
     if (mode === "signup" && (!registration.name.trim() || !registration.phone.trim())) {
       setError("Veuillez renseigner votre nom et votre téléphone.");
       return;
@@ -93,7 +100,7 @@ function AuthPage({ onAuth }) {
     setError(""); setLoading(true);
     const fn = mode === "login"
       ? supabase.auth.signInWithPassword({ email: normalizedEmail, password })
-      : supabase.auth.signUp({ email: normalizedEmail, password, options: { data: { account_type: accountType, ...registration } } });
+      : supabase.auth.signUp({ email: normalizedEmail, password, options: { data: { account_type: accountType, ...registration, terms_accepted_at: new Date().toISOString() } } });
     const { data, error: e } = await fn;
     setLoading(false);
     if (e) { setError(e.message); return; }
@@ -107,6 +114,10 @@ function AuthPage({ onAuth }) {
   };
 
   const continueWithGoogle = async () => {
+    if (mode === "signup" && !acceptedTerms) {
+      setError("Veuillez lire et accepter les conditions d'utilisation.");
+      return;
+    }
     setError("");
     const { error: googleError } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -163,6 +174,26 @@ function AuthPage({ onAuth }) {
           ))}
           {mode === "signup" && <input type="password" placeholder="Confirmer le mot de passe" value={passwordConfirmation} required minLength={8} onChange={e => setPasswordConfirmation(e.target.value)}
             style={{ width: "100%", padding: "13px 16px", borderRadius: 12, border: "1.5px solid #E8E0FF", fontSize: 14, marginBottom: 12, background: "#F5F2FF" }} />}
+          {mode === "signup" && (
+            <section className="auth-terms" aria-labelledby="auth-terms-title">
+              <details className="auth-terms-details" open>
+                <summary id="auth-terms-title">Conditions d’utilisation</summary>
+                <div className="auth-terms-content">
+                  {TERMS_SECTIONS.map(section => (
+                    <section key={section.title}>
+                      <h3>{section.title}</h3>
+                      <p>{section.content}</p>
+                    </section>
+                  ))}
+                </div>
+                <button type="button" className="auth-terms-full" onClick={() => setShowConditions(true)}>Ouvrir les conditions en plein écran</button>
+              </details>
+              <label className="auth-terms-consent">
+                <input type="checkbox" checked={acceptedTerms} onChange={e => { setAcceptedTerms(e.target.checked); setError(""); }} />
+                <span>J’ai lu et j’accepte les conditions d’utilisation.</span>
+              </label>
+            </section>
+          )}
           {error && <p style={{ color: "#DC2626", fontSize: 13, marginBottom: 12 }}>✗ {error}</p>}
           <button onClick={submit} disabled={loading} style={{ width: "100%", background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "14px", borderRadius: 12, fontWeight: 700, fontSize: 16, marginBottom: 16, boxShadow: "0 8px 24px rgba(107,33,168,0.3)", opacity: loading ? 0.7 : 1 }}>
             {loading ? "Chargement..." : mode === "login" ? "Se connecter" : "Créer mon compte"}
@@ -173,15 +204,11 @@ function AuthPage({ onAuth }) {
           </button>
           <p style={{ textAlign: "center", fontSize: 13, color: "#9CA3AF" }}>
             {mode === "login" ? "Pas encore de compte ? " : "Déjà un compte ? "}
-            <span onClick={() => setMode(mode === "login" ? "signup" : "login")} style={{ color: "#6B21A8", fontWeight: 700, cursor: "pointer" }}>
+            <span onClick={() => { setMode(mode === "login" ? "signup" : "login"); setAcceptedTerms(false); setError(""); }} style={{ color: "#6B21A8", fontWeight: 700, cursor: "pointer" }}>
               {mode === "login" ? "S'inscrire" : "Se connecter"}
             </span>
           </p>
         </div>
-      </div>
-      <div className="auth-legal">
-        <span>Avant de continuer, consultez nos conditions d’utilisation.</span>
-        <button type="button" onClick={() => setShowConditions(true)}>Lire les conditions d’utilisation</button>
       </div>
     </div>
   );
