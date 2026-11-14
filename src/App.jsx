@@ -179,7 +179,7 @@ function AuthPage({ onAuth }) {
               <details className="auth-terms-details" open>
                 <summary id="auth-terms-title">Conditions d’utilisation</summary>
                 <div className="auth-terms-content">
-                  {TERMS_SECTIONS.map(section => (
+                  {TERMS_SECTIONS.filter(section => accountType !== "buyer" || section.title !== "6. Vendeurs").map(section => (
                     <section key={section.title}>
                       <h3>{section.title}</h3>
                       <p>{section.content}</p>
