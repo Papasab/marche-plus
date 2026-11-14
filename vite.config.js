@@ -9,14 +9,6 @@ export default defineConfig({
         main: './index.html',
         admin: './admin.html',
       },
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          supabase: ['@supabase/supabase-js'],
-          charts: ['recharts'],
-          xlsx: ['xlsx'],
-        }
-      }
     },
     chunkSizeWarningLimit: 1000,
   }

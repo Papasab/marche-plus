@@ -7,25 +7,9 @@ const SUPABASE_KEY  = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.
 const WHATSAPP      = import.meta.env.VITE_WHATSAPP || "22391090523";
 const ADMIN_EMAIL   = "kone91139@gmail.com";
 const supabase      = createClient(SUPABASE_URL, SUPABASE_KEY);
+const COMMANDES_API = `${(import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "")}/api/commandes`;
 
 const fmt = (n) => new Intl.NumberFormat("fr-FR").format(n) + " FCFA";
-const genId = () => "CMD-" + Math.floor(100000 + Math.random() * 900000);
-const createPaydunyaInvoice = async (total, description) => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.access_token) throw new Error("Session utilisateur requise");
-  const response = await fetch("/api/paydunya", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-    body: JSON.stringify({ total, description, cancel_url: window.location.href, return_url: window.location.href, callback_url: window.location.href }),
-  });
-  const contentType = response.headers.get("content-type") || "";
-  if (!contentType.includes("application/json")) {
-    throw new Error("L’API de paiement n’est pas disponible ici. Teste le site déployé sur Vercel.");
-  }
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || "Erreur PayDunya");
-  return data.url;
-};
 
 // ── Promo codes ───────────────────────────────────────────────────
 const PROMO_CODES = {
@@ -311,45 +295,41 @@ function BottomNav({ page, setPage, cartCount, favCount, onProfile }) {
 
 // ── Product Card ──────────────────────────────────────────────────
 function ProductCard({ p, onSelect, onAdd, isFavorite, onToggleFav }) {
-  const [hovered, setHovered] = useState(false);
   const hasDiscount = p.prix_original && p.prix_original > p.price;
   const sellerName = p.vendeur_nom || p.vendor_name || "Vendeur Marché+";
   const sellerArea = p.quartier || p.vendor_quartier || "Mali";
   const verified = p.vendeur_verifie || p.vendor_verified || p.verifie;
   return (
-    <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8E0FF", overflow: "hidden", cursor: "pointer", transition: "all .3s", transform: hovered ? "translateY(-4px)" : "none", boxShadow: hovered ? "0 16px 40px rgba(107,33,168,0.15)" : "0 2px 8px rgba(107,33,168,0.05)" }}
-      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onClick={() => onSelect(p)}>
-      <div style={{ position: "relative", height: 180, background: "#F5F2FF", overflow: "hidden" }}>
-        <img src={p.image} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform .4s", transform: hovered ? "scale(1.06)" : "scale(1)" }} onError={e => e.target.style.display = "none"} />
-        <button onClick={e => { e.stopPropagation(); onToggleFav(p); }} style={{ position: "absolute", top: 10, right: 10, width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.95)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+    <article className="product-card">
+      <div className="product-card-media">
+        <button type="button" className="product-card-image-button" onClick={() => onSelect(p)} aria-label={`Voir ${p.name}`}>
+          {p.image ? <img src={p.image} alt={p.name} onError={e => e.currentTarget.style.display = "none"} /> : <span className="product-image-fallback">M+</span>}
+        </button>
+        <button type="button" className="product-favorite-button" aria-label={isFavorite(p.id) ? "Retirer des favoris" : "Ajouter aux favoris"} aria-pressed={isFavorite(p.id)} onClick={() => onToggleFav(p)}>
           {isFavorite(p.id) ? "❤️" : "🤍"}
         </button>
-        {hasDiscount && <div style={{ position: "absolute", top: 10, left: 10, background: "#DC2626", color: "#fff", fontSize: 10, fontWeight: 800, padding: "3px 8px", borderRadius: 99 }}>-{p.reduction}%</div>}
-        {p.stock < 10 && !hasDiscount && <div style={{ position: "absolute", top: 10, left: 10, background: "rgba(220,38,38,0.9)", color: "#fff", fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 99 }}>Stock limité</div>}
+        {hasDiscount && <span className="product-discount-badge">-{p.reduction}%</span>}
+        {Number(p.stock) > 0 && Number(p.stock) <= 5 && <span className="product-stock-badge">Plus que {p.stock}</span>}
       </div>
-      <div style={{ padding: "12px 14px" }}>
-        <div style={{ fontSize: 10, color: "#6B21A8", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", marginBottom: 4 }}>{p.category}</div>
-        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6, lineHeight: 1.3, color: "#1A0A2E" }}>{p.name}</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 3, marginBottom: 8 }}>
-          {[1,2,3,4,5].map(n => <span key={n} style={{ fontSize: 10, color: n <= Math.round(p.rating) ? "#D4AF37" : "#E8E0FF" }}>★</span>)}
-          <span style={{ fontSize: 11, color: "#9CA3AF", marginLeft: 2 }}>{p.rating}</span>
-        </div>
+      <div className="product-card-body">
+        <div className="product-card-topline"><span>{p.category || "Sélection locale"}</span><span className="product-rating">★ {Number(p.rating || 0).toFixed(1)}</span></div>
+        <button type="button" className="product-card-title" onClick={() => onSelect(p)}>{p.name}</button>
         <div className="product-meta" style={{ marginBottom: 10 }}>
           <span>{sellerName}</span>
           {verified && <span className="verified-badge">✓ Vérifié</span>}
           <small>📍 {sellerArea}</small>
         </div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <div style={{ fontWeight: 900, fontSize: 16, color: "#D4AF37" }}>{fmt(p.price)}</div>
-            {hasDiscount && <div style={{ fontSize: 11, color: "#9CA3AF", textDecoration: "line-through" }}>{fmt(p.prix_original)}</div>}
+        <div className="product-card-footer">
+          <div className="product-price-stack">
+            <strong>{fmt(p.price)}</strong>
+            {hasDiscount && <small>{fmt(p.prix_original)}</small>}
           </div>
-          <button onClick={e => { e.stopPropagation(); onAdd(p); }} style={{ background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "8px 14px", borderRadius: 99, fontSize: 12, fontWeight: 700, boxShadow: "0 4px 12px rgba(107,33,168,0.25)" }}>
-            + Ajouter
+          <button type="button" className="product-add-button" onClick={() => onAdd(p)}>
+            Ajouter
           </button>
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -612,7 +592,7 @@ function ShopPage({ products, onAdd, onSelect, favorites, onToggleFav, isFavorit
   const [sortBy, setSortBy] = useState("featured");
   const CATS = ["Tous", "Mode", "Électronique", "Maison", "Bureau"];
   const SORT_OPTIONS = [
-    { value: "featured", label: "Populaires" },
+    { value: "featured", label: "Meilleures notes" },
     { value: "priceAsc", label: "Prix ↑" },
     { value: "priceDesc", label: "Prix ↓" },
     { value: "discount", label: "Promotions" },
@@ -649,18 +629,33 @@ function ShopPage({ products, onAdd, onSelect, favorites, onToggleFav, isFavorit
         default: return (b.rating ?? 0) - (a.rating ?? 0);
       }
     });
+  const categoryCounts = CATS.reduce((counts, category) => {
+    counts[category] = category === "Tous" ? products.length : products.filter(product => product.category === category).length;
+    return counts;
+  }, {});
 
   return (
     <div className="store-shop" style={{ maxWidth: 1100, margin: "0 auto", padding: "20px 16px" }}>
-      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
-        <input placeholder="🔍 Rechercher un produit..." value={search} onChange={e => setSearch(e.target.value)}
-          style={{ flex: 1, minWidth: 200, padding: "11px 18px", borderRadius: 99, border: "1.5px solid #E8E0FF", fontSize: 14, background: "#fff" }} />
-        <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-          style={{ minWidth: 150, padding: "11px 16px", borderRadius: 99, border: "1.5px solid #E8E0FF", fontSize: 14, background: "#fff", color: "#1A0A2E" }}>
-          {SORT_OPTIONS.map(option => (
-            <option key={option.value} value={option.value}>{option.label}</option>
-          ))}
-        </select>
+      <header className="shop-heading">
+        <div>
+          <span className="eyebrow">MARCHÉ+ · SÉLECTION LOCALE</span>
+          <h1>Le catalogue</h1>
+          <p>Des trouvailles de vendeurs locaux, réunies au même endroit.</p>
+        </div>
+        <div className="shop-heading-mark"><span>À DÉCOUVRIR</span><strong>{products.length}</strong><small>produits sélectionnés</small></div>
+      </header>
+
+      <div className="shop-controls">
+        <label className="shop-search-field">
+          <span aria-hidden="true">⌕</span>
+          <input aria-label="Rechercher un produit" placeholder="Rechercher un produit, une catégorie…" value={search} onChange={e => setSearch(e.target.value)} />
+          {search && <button type="button" onClick={() => setSearch("")} aria-label="Effacer la recherche">×</button>}
+        </label>
+        <label className="shop-sort-field"><span>Trier par</span>
+          <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
+            {SORT_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </select>
+        </label>
         <button onClick={() => {
           if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) { alert("Recherche vocale non supportée sur ce navigateur"); return; }
           const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -668,38 +663,36 @@ function ShopPage({ products, onAdd, onSelect, favorites, onToggleFav, isFavorit
           recognition.lang = "fr-FR";
           recognition.start();
           recognition.onresult = (e) => setSearch(e.results[0][0].transcript);
-        }} style={{ background: "#6B21A8", color: "#fff", border: "none", width: 44, height: 44, borderRadius: "50%", fontSize: 18, cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          🎤
+        }} className="shop-voice-search" aria-label="Recherche vocale" title="Recherche vocale">
+          🎙
         </button>
       </div>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 20, overflowX: "auto", paddingBottom: 4, alignItems: "center" }}>
+      <div className="shop-category-list" aria-label="Filtrer par catégorie">
         {CATS.map(c => (
-          <button key={c} onClick={() => setCat(c)} style={{ background: cat === c ? "#6B21A8" : "#fff", color: cat === c ? "#fff" : "#6B7280", border: `1.5px solid ${cat === c ? "#6B21A8" : "#E8E0FF"}`, padding: "8px 18px", borderRadius: 99, fontWeight: cat === c ? 700 : 500, fontSize: 13, flexShrink: 0 }}>
-            {c}
+          <button key={c} onClick={() => setCat(c)} className={`shop-category-chip${cat === c ? " is-active" : ""}`} aria-pressed={cat === c}>
+            {c}<span>{categoryCounts[c]}</span>
           </button>
         ))}
-        {(search || cat !== "Tous") && (
-          <button onClick={() => { setSearch(""); setCat("Tous"); setSortBy("featured"); }} style={{ background: "#F5F2FF", color: "#6B21A8", border: "none", padding: "8px 14px", borderRadius: 99, fontWeight: 700, fontSize: 12, marginLeft: "auto" }}>
-            Réinitialiser
-          </button>
-        )}
       </div>
 
-      {filtered.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "60px 0", color: "#9CA3AF" }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>🔍</div>
-          <div style={{ fontWeight: 600 }}>Aucun produit trouvé</div>
-          <div style={{ marginTop: 8, fontSize: 14 }}>Essayez un autre mot-clé ou réinitialisez les filtres.</div>
-        </div>
-      ) : (
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, fontSize: 13, color: "#6B7280" }}>
-          <span>{filtered.length} produit{filtered.length > 1 ? "s" : ""} trouvé{filtered.length > 1 ? "s" : ""}</span>
+      <div className="shop-results-heading">
+        <div><span className="eyebrow">VOTRE PROCHAINE TROUVAILLE</span><h2>{cat === "Tous" ? "Tous les produits" : cat}</h2></div>
+        <span>{filtered.length} résultat{filtered.length !== 1 ? "s" : ""}</span>
+        {(search || cat !== "Tous" || sortBy !== "featured") && <button onClick={() => { setSearch(""); setCat("Tous"); setSortBy("featured"); }}>Effacer les filtres</button>}
+      </div>
+
+      {filtered.length === 0 && (
+        <div className="shop-empty-state">
+          <div className="shop-empty-icon">⌕</div>
+          <h3>Aucun produit trouvé</h3>
+          <p>Essayez un autre mot-clé ou élargissez votre sélection.</p>
+          <button onClick={() => { setSearch(""); setCat("Tous"); setSortBy("featured"); }}>Voir tous les produits</button>
         </div>
       )}
 
       {filtered.length > 0 && (
-        <div className="product-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+        <div className="product-grid shop-product-grid">
           {filtered.map(p => <ProductCard key={p.id} p={p} onSelect={onSelect} onAdd={onAdd} isFavorite={isFavorite} onToggleFav={onToggleFav} />)}
         </div>
       )}
@@ -803,19 +796,26 @@ function ProductDetailPage({ product: p, onAdd, onBack, isFavorite, onToggleFav,
     if (p) onViewed?.(p);
   }, [p, onViewed]);
   useEffect(() => {
+    setMainImg(p.image);
+    setQty(1);
+    setColor("");
+    setSize("");
     window.scrollTo(0, 0);
   }, [p.id]);
   const images = p.images ? (Array.isArray(p.images) ? p.images : p.images.split(",").filter(Boolean)) : [p.image];
   const colors = p.colors ? p.colors.split(",").map(s => s.trim()) : [];
   const sizes  = p.sizes  ? p.sizes.split(",").map(s => s.trim())  : [];
   const hasDiscount = p.prix_original && p.prix_original > p.price;
+  const stock = Math.max(0, Number(p.stock) || 0);
+  const hasMissingVariant = (colors.length > 0 && !selColor) || (sizes.length > 0 && !selSize);
+  const canAddToCart = stock > 0 && !hasMissingVariant;
 
   return (
-    <div className="store-detail" style={{ maxWidth: 1000, margin: "0 auto", padding: "20px 16px" }}>
-      <button onClick={onBack} style={{ background: "none", border: "none", color: "#6B21A8", fontSize: 14, cursor: "pointer", marginBottom: 20, fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>← Retour à la boutique</button>
+    <div className="store-detail product-detail-page" style={{ maxWidth: 1120, margin: "0 auto", padding: "20px 16px" }}>
+      <button className="product-back-button" onClick={onBack}>← Retour au catalogue</button>
 
       {/* Share buttons */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+      <div className="product-share-bar">
         {[
           { label: "WhatsApp", bg: "#25D366", url: `https://wa.me/?text=${encodeURIComponent(`Regardez ce produit sur Marché+ : ${p.name} - ${fmt(p.price)}`)}` },
           { label: "Facebook", bg: "#1877F2", url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}` },
@@ -825,68 +825,69 @@ function ProductDetailPage({ product: p, onAdd, onBack, isFavorite, onToggleFav,
         <button onClick={() => navigator.clipboard.writeText(window.location.href)} style={{ background: "#F5F2FF", color: "#6B21A8", border: "none", padding: "8px 16px", borderRadius: 99, fontSize: 13, fontWeight: 600 }}>Copier lien</button>
       </div>
 
-      <div className="detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 28, alignItems: "start" }}>
+      <div className="detail-grid product-detail-layout" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 28, alignItems: "start" }}>
         {/* Images */}
-        <div>
-          <div style={{ borderRadius: 16, overflow: "hidden", height: 320, background: "#F5F2FF", marginBottom: 12, position: "relative" }}>
-            <img src={mainImg} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => e.target.style.display="none"} />
-            {hasDiscount && <div style={{ position: "absolute", top: 12, left: 12, background: "#DC2626", color: "#fff", fontSize: 12, fontWeight: 800, padding: "4px 10px", borderRadius: 99 }}>-{p.reduction}%</div>}
-            <button onClick={() => onToggleFav(p)} style={{ position: "absolute", top: 12, right: 12, width: 36, height: 36, borderRadius: "50%", background: "#fff", border: "none", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+        <div className="product-gallery">
+          <div className="product-gallery-main">
+            {mainImg ? <img src={mainImg} alt={p.name} onError={e => e.currentTarget.style.display = "none"} /> : <span className="product-image-fallback">M+</span>}
+            {hasDiscount && <span className="product-detail-discount">-{p.reduction}%</span>}
+            <button className="product-detail-favorite" aria-label={isFavorite(p.id) ? "Retirer des favoris" : "Ajouter aux favoris"} aria-pressed={isFavorite(p.id)} onClick={() => onToggleFav(p)}>
               {isFavorite(p.id) ? "❤️" : "🤍"}
             </button>
           </div>
           {images.length > 1 && (
-            <div style={{ display: "flex", gap: 8 }}>
+            <div className="product-gallery-thumbnails" aria-label="Photos du produit">
               {images.map((img, i) => (
-                <div key={i} onClick={() => setMainImg(img)} style={{ width: 72, height: 72, borderRadius: 10, overflow: "hidden", border: `2px solid ${mainImg === img ? "#6B21A8" : "#E8E0FF"}`, cursor: "pointer" }}>
-                  <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                </div>
+                <button key={i} type="button" className={mainImg === img ? "is-active" : ""} onClick={() => setMainImg(img)} aria-label={`Afficher la photo ${i + 1}`} aria-pressed={mainImg === img}>
+                  <img src={img} alt="" />
+                </button>
               ))}
             </div>
           )}
         </div>
 
         {/* Infos */}
-        <div>
-          <div style={{ fontSize: 11, color: "#6B21A8", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 8 }}>{p.category}</div>
-          <h1 style={{ fontWeight: 900, fontSize: 22, color: "#1A0A2E", marginBottom: 8, lineHeight: 1.3 }}>{p.name}</h1>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
-            {[1,2,3,4,5].map(n => <span key={n} style={{ fontSize: 14, color: n <= Math.round(p.rating) ? "#D4AF37" : "#E8E0FF" }}>★</span>)}
-            <span style={{ fontSize: 13, color: "#9CA3AF" }}>{p.rating} ({p.reviews || 0} avis)</span>
+        <div className="product-purchase-panel">
+          <div className="product-detail-category">{p.category || "Sélection locale"}</div>
+          <h1>{p.name}</h1>
+          <div className="product-detail-rating">
+            <span>★ {Number(p.rating || 0).toFixed(1)}</span>
+            <span>{p.reviews || 0} avis clients</span>
           </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 16 }}>
-            <span style={{ fontWeight: 900, fontSize: 28, color: "#D4AF37" }}>{fmt(p.price)}</span>
-            {hasDiscount && <span style={{ fontSize: 16, color: "#9CA3AF", textDecoration: "line-through" }}>{fmt(p.prix_original)}</span>}
+          <div className="product-detail-price">
+            <strong>{fmt(p.price)}</strong>
+            {hasDiscount && <span>{fmt(p.prix_original)}</span>}
+            {hasDiscount && <small>Économisez {fmt(p.prix_original - p.price)}</small>}
           </div>
-          {p.description && <p style={{ fontSize: 14, color: "#6B7280", lineHeight: 1.7, marginBottom: 16 }}>{p.description}</p>}
+          {p.description && <p className="product-detail-description">{p.description}</p>}
+          <div className={`product-detail-stock${stock === 0 ? " is-out" : stock <= 5 ? " is-low" : ""}`}>
+            <span>{stock === 0 ? "Rupture de stock" : stock <= 5 ? `Plus que ${stock} en stock` : "En stock"}</span>
+            {stock > 5 && <small>{stock} disponibles</small>}
+          </div>
           {colors.length > 0 && (
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8 }}>Couleur : <span style={{ color: "#6B21A8" }}>{selColor || "Choisir"}</span></div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {colors.map(c => <button key={c} onClick={() => setColor(c)} style={{ padding: "6px 14px", borderRadius: 99, border: `2px solid ${selColor === c ? "#6B21A8" : "#E8E0FF"}`, background: selColor === c ? "#EDE9FE" : "#fff", fontWeight: selColor === c ? 700 : 400, fontSize: 13 }}>{c}</button>)}
+            <div className="product-option-group">
+              <div>Couleur <span>{selColor || "Choisir"}</span></div>
+              <div className="product-option-list">
+                {colors.map(c => <button type="button" key={c} onClick={() => setColor(c)} className={selColor === c ? "is-active" : ""} aria-pressed={selColor === c}>{c}</button>)}
               </div>
             </div>
           )}
           {sizes.length > 0 && (
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8 }}>Taille : <span style={{ color: "#6B21A8" }}>{selSize || "Choisir"}</span></div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {sizes.map(s => <button key={s} onClick={() => setSize(s)} style={{ width: 40, height: 40, borderRadius: 8, border: `2px solid ${selSize === s ? "#6B21A8" : "#E8E0FF"}`, background: selSize === s ? "#EDE9FE" : "#fff", fontWeight: selSize === s ? 700 : 400, fontSize: 13 }}>{s}</button>)}
+            <div className="product-option-group">
+              <div>Taille <span>{selSize || "Choisir"}</span></div>
+              <div className="product-option-list product-size-list">
+                {sizes.map(s => <button type="button" key={s} onClick={() => setSize(s)} className={selSize === s ? "is-active" : ""} aria-pressed={selSize === s}>{s}</button>)}
               </div>
             </div>
           )}
-          <div style={{ fontSize: 12, color: p.stock < 10 ? "#DC2626" : "#059669", fontWeight: 600, marginBottom: 16 }}>
-            {p.stock < 10 ? `⚠ Plus que ${p.stock} en stock` : `✓ ${p.stock} disponibles`}
-          </div>
-          {/* Quantité + Ajouter */}
-          <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 0, border: "1.5px solid #E8E0FF", borderRadius: 99, overflow: "hidden" }}>
-              <button onClick={() => setQty(Math.max(1, qty - 1))} style={{ width: 36, height: 36, background: "none", border: "none", fontSize: 18, color: "#6B21A8", fontWeight: 700 }}>−</button>
-              <span style={{ padding: "0 12px", fontWeight: 700 }}>{qty}</span>
-              <button onClick={() => setQty(qty + 1)} style={{ width: 36, height: 36, background: "none", border: "none", fontSize: 18, color: "#6B21A8", fontWeight: 700 }}>+</button>
+          <div className="product-buy-row">
+            <div className="product-quantity-control" aria-label="Quantité">
+              <button type="button" onClick={() => setQty(value => Math.max(1, value - 1))} disabled={qty <= 1} aria-label="Diminuer la quantité">−</button>
+              <span aria-live="polite">{qty}</span>
+              <button type="button" onClick={() => setQty(value => Math.min(stock, value + 1))} disabled={qty >= stock} aria-label="Augmenter la quantité">+</button>
             </div>
-            <button onClick={() => onAdd({ ...p, qty, color: selColor, size: selSize })} style={{ flex: 1, background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "12px", borderRadius: 99, fontWeight: 700, fontSize: 15, boxShadow: "0 8px 24px rgba(107,33,168,0.3)" }}>
-              🛒 Ajouter au panier
+            <button type="button" className="product-detail-add" disabled={!canAddToCart} onClick={() => onAdd({ ...p, qty, color: selColor, size: selSize })}>
+              {stock === 0 ? "Indisponible" : hasMissingVariant ? "Choisissez vos options" : "Ajouter au panier"}
             </button>
           </div>
           {/* Vidéo */}
@@ -993,14 +994,13 @@ function CartPage({ cart, onRemove, onUpdateQty, goToShop, goToPayment, promoCod
 // ── Payment Page ──────────────────────────────────────────────────
 function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState({ name: "", phone: "", address: "", method: "paydunya" });
+  const [form, setForm] = useState({ name: "", phone: "", address: "", method: "cash" });
   const [errors, setErrors] = useState({});
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const discount = Math.round(subtotal * promoDiscount / 100);
   const total    = subtotal - discount;
   const STEPS    = ["Livraison", "Paiement", "Confirmation"];
   const METHODS  = [
-    { key: "paydunya", label: "Paiement en ligne", sub: "Paiement sécurisé par carte ou wallet", icon: "💳" },
     { key: "cash", label: "À la livraison", sub: "Payez en espèces à réception", icon: "💵" },
   ];
 
@@ -1071,25 +1071,6 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
             </div>
           ))}
 
-          {form.method === "paydunya" && (
-            <div style={{ background: "#EDE9FE", borderRadius: 12, padding: "16px", marginTop: 14, border: "1px solid #6B21A8" }}>
-              <div style={{ fontWeight: 700, fontSize: 15, color: "#6B21A8", marginBottom: 10 }}>💳 Paiement sécurisé via PayDunya</div>
-              <p style={{ fontSize: 13, color: "#6B7280", marginBottom: 14 }}>Vous serez redirigé vers la page de paiement sécurisée PayDunya pour payer avec Orange Money, Moov Money ou carte bancaire.</p>
-              <button onClick={async () => {
-                const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
-                const discount = Math.round(subtotal * promoDiscount / 100);
-                const total = subtotal - discount;
-                try {
-                  window.location.href = await createPaydunyaInvoice(total, `Commande Marché+ — ${cart.map(i => i.name).join(", ")}`);
-                } catch (e) {
-                  alert(e.message || "Erreur de connexion PayDunya");
-                }
-              }} style={{ width: "100%", background: "linear-gradient(135deg, #6B21A8, #4C1D95)", color: "#fff", border: "none", padding: "13px", borderRadius: 99, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
-                💳 Payer maintenant
-              </button>
-            </div>
-          )}
-
           {form.method === "cash" && (
             <div style={{ background: "#F0FDF4", borderRadius: 12, padding: "16px", marginTop: 14, border: "1px solid #16A34A" }}>
               <div style={{ fontWeight: 700, fontSize: 15, color: "#15803D", marginBottom: 10 }}>💵 Paiement à la livraison</div>
@@ -1136,8 +1117,8 @@ function PaymentPage({ cart, onConfirm, promoDiscount, promoCode }) {
 }
 
 // ── Orders Page ───────────────────────────────────────────────────
-function TrackingPage({ supabase }) {
-  const [orderId, setOrderId] = useState("");
+function TrackingPage({ supabase, user }) {
+  const [orderId, setOrderId] = useState(() => new URLSearchParams(window.location.search).get("suivi") || "");
   const [order, setOrder]     = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState("");
@@ -1146,15 +1127,36 @@ function TrackingPage({ supabase }) {
   const search = async () => {
     if (!orderId.trim()) return;
     setLoading(true); setError(""); setOrder(null);
-    const { data } = await supabase.from("commandes").select("*").eq("id", orderId.trim()).single();
-    if (data) setOrder(data);
-    else setError("Commande introuvable. Vérifiez le numéro.");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(COMMANDES_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token || ""}` },
+        body: JSON.stringify({ action: "get", id: orderId.trim() }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setOrder(result.order);
+    } catch (requestError) {
+      setError(requestError.message || "Commande introuvable. Vérifiez le numéro.");
+    }
     setLoading(false);
   };
 
+  useEffect(() => {
+    if (orderId) search();
+  }, []);
+
   const cancel = async () => {
     if (!window.confirm("Voulez-vous vraiment annuler cette commande ?")) return;
-    await supabase.from("commandes").update({ status: "Annulé" }).eq("id", order.id);
+    const { data: { session } } = await supabase.auth.getSession();
+    const response = await fetch(COMMANDES_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token || ""}` },
+      body: JSON.stringify({ action: "cancel", id: order.id }),
+    });
+    const result = await response.json();
+    if (!response.ok) { setError(result.error || "Impossible d’annuler cette commande"); return; }
     setOrder({ ...order, status: "Annulé" });
   };
 
@@ -1745,48 +1747,38 @@ export default function App() {
 
   // Place order
   const placeOrder = async (form) => {
-    const cartTotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
-    const cartCount = cart.reduce((s, i) => s + i.qty, 0);
-    const discount  = Math.round(cartTotal * promoDiscount / 100);
-    const total     = cartTotal - discount;
-    const orderId   = genId();
-    const methodLabel = { paydunya: "Paiement en ligne", cash: "À la livraison" }[form.method] || "Paiement en ligne";
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(COMMANDES_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token || ""}` },
+        body: JSON.stringify({
+          action: "create",
+          name: form.name,
+          phone: form.phone,
+          address: form.address,
+          promoCode,
+          items: cart.map(item => ({ id: item.id, quantity: item.qty })),
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Impossible d’enregistrer la commande");
 
-    // Save order
-    const { error } = await supabase.from("commandes").insert({
-      id: orderId, date: new Date().toISOString().slice(0,10), status: "En cours",
-      total, items: cartCount, client_nom: form.name, client_telephone: form.phone,
-      client_adresse: form.address, paiement: methodLabel,
-      produits: JSON.stringify(cart.map(i => ({ nom: i.name, qty: i.qty, prix: i.price }))),
-      user_id: user?.id,
-    });
-    if (error) console.error(error);
+      const createdOrders = result.orders || [];
+      const total = createdOrders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+      setPoints(pointsValue => pointsValue + Math.floor(total / 1000));
+      const orderSummary = createdOrders.map(order => {
+        const lines = JSON.parse(order.produits || "[]");
+        return `📋 Commande ${order.id}\n${lines.map(line => `• ${line.nom} x${line.qty} — ${fmt(line.prix * line.qty)}`).join("\n")}\nTotal : ${fmt(order.total)}\nSuivi : https://marche-plus.vercel.app/?suivi=${order.id}`;
+      }).join("\n\n");
+      const msg = `🛍 *NOUVELLE COMMANDE — Marché+*\n\n👤 Client : ${form.name}\n📞 Téléphone : ${form.phone}\n📍 Adresse : ${form.address}\n💵 Paiement : À la livraison\n\n${orderSummary}\n\n💰 TOTAL : ${fmt(total)}${promoCode ? `\n🏷 Code promo : ${promoCode}` : ""}\n\nMerci pour votre commande !`;
 
-    // Points
-    setPoints(p => p + Math.floor(total / 1000));
-
-    // WhatsApp
-    const msg = `🛍 *NOUVELLE COMMANDE — Marché+*\n━━━━━━━━━━━━━━━━━━━━\n\n📋 *Commande :* ${orderId}\n📅 *Date :* ${new Date().toLocaleDateString("fr-FR")}\n\n👤 *Client :* ${form.name}\n📞 *Téléphone :* ${form.phone}\n📍 *Adresse :* ${form.address}\n💳 *Paiement :* ${methodLabel}\n\n🛒 *Produits commandés :*\n${cart.map(i => `• ${i.name}${i.color ? ` (${i.color})` : ""}${i.size ? ` - Taille: ${i.size}` : ""} x${i.qty} — ${fmt(i.price * i.qty)}`).join("\n")}\n\n━━━━━━━━━━━━━━━━━━━━\n💰 *TOTAL : ${fmt(total)}*${promoCode ? `\n🏷 Code promo : ${promoCode} (-${promoDiscount}%)` : ""}\n\n🔍 *Suivi :* https://marche-plus.vercel.app/?suivi=${orderId}\n\n✅ Merci pour votre commande ! Nous vous contacterons bientôt pour confirmer la livraison. 🙏`;
-
-    const vendeurItems = cart.filter(i => i.vendeur_id);
-    if (vendeurItems.length > 0) {
-      // Envoyer à chaque vendeur unique
-      const vendeurIds = [...new Set(vendeurItems.map(i => i.vendeur_id))];
-      for (const vendeurId of vendeurIds) {
-        const { data: v } = await supabase.from("vendeurs").select("whatsapp, nom_boutique").eq("id", vendeurId).single();
-        const prodVendeur = cart.filter(i => i.vendeur_id === vendeurId);
-        const msgVendeur = `🛍 *NOUVELLE COMMANDE — Marché+*\n━━━━━━━━━━━━━━━━━━━━\n\n📋 *Commande :* ${orderId}\n📅 *Date :* ${new Date().toLocaleDateString("fr-FR")}\n\n👤 *Client :* ${form.name}\n📞 *Téléphone :* ${form.phone}\n📍 *Adresse :* ${form.address}\n💳 *Paiement :* ${methodLabel}\n\n🛒 *Vos produits commandés :*\n${prodVendeur.map(i => `• ${i.name}${i.color ? ` (${i.color})` : ""}${i.size ? ` - Taille: ${i.size}` : ""} x${i.qty} — ${fmt(i.price * i.qty)}`).join("\n")}\n\n💰 *Total : ${fmt(prodVendeur.reduce((s,i) => s + i.price * i.qty, 0))}*\n📉 Commission Marché+ (10%) : ${fmt(Math.round(prodVendeur.reduce((s,i) => s + i.price * i.qty, 0) * 0.1))}\n\n✅ Merci ! Contactez le client rapidement. 🙏`;
-        window.open(`https://wa.me/${v?.whatsapp || WHATSAPP}?text=${encodeURIComponent(msgVendeur)}`, "_blank");
-      }
-      // Envoyer aussi à l'admin
+      setCart([]); removePromo();
+      fetchOrders();
       window.location.href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
-    } else {
-      window.location.href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
-    } 
-
-    setCart([]); removePromo();
-    fetchOrders();
-    setPage("orders");
+    } catch (error) {
+      alert(error.message || "Erreur lors de la création de la commande");
+    }
   };
 
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
@@ -1867,7 +1859,7 @@ export default function App() {
       {!showProfile && !showParrainage && !vendorPage && page === "payment"  && <PaymentPage cart={cart} onConfirm={placeOrder} promoDiscount={promoDiscount} promoCode={promoCode} />}
       
      {!showProfile && !showParrainage && !vendorPage && page === "orders"   && <OrdersPage orders={orders} loading={loadingOrders} />}
-        {!showProfile && !showParrainage && !vendorPage && page === "tracking"  && <TrackingPage supabase={supabase} />}
+        {!showProfile && !showParrainage && !vendorPage && page === "tracking"  && <TrackingPage supabase={supabase} user={user} />}
       {!showProfile && !showParrainage && !vendorPage && page === "favorites" && <FavoritesPage favorites={favorites} onSelect={setSelectedProduct} onToggleFav={toggleFavorite} onAdd={addToCart} isFavorite={isFavorite} />}
 
       {/* Profile */}
@@ -1879,7 +1871,14 @@ export default function App() {
 
       {/* Vendor */}
       {vendorPage === "register" && <VendorRegister supabase={supabase} user={user} onDone={(v) => { setMyVendor(v); setVendorPage("dashboard"); }} onBack={() => setVendorPage(null)} />}
-      {vendorPage === "dashboard" && myVendor && <VendorDashboard supabase={supabase} vendor={myVendor} onBack={() => setVendorPage(null)} user={user} />}
+      {vendorPage === "dashboard" && myVendor?.statut === "approuve" && <VendorDashboard supabase={supabase} vendor={myVendor} onBack={() => setVendorPage(null)} user={user} />}
+      {vendorPage === "dashboard" && myVendor && myVendor.statut !== "approuve" && (
+        <div style={{ maxWidth: 560, margin: "48px auto", padding: 24, textAlign: "center", background: "#fff", borderRadius: 16, border: "1px solid #E8E0FF" }}>
+          <h2 style={{ marginBottom: 10 }}>{myVendor.statut === "suspendu" ? "Boutique suspendue" : "Demande en attente"}</h2>
+          <p style={{ color: "#6B7280", marginBottom: 20 }}>{myVendor.statut === "suspendu" ? "Contactez Marché+ pour plus d’informations." : "Votre boutique sera accessible après validation par Marché+."}</p>
+          <button onClick={() => setVendorPage(null)} style={{ border: 0, borderRadius: 8, padding: "10px 18px", background: "#0F9D68", color: "#fff", fontWeight: 700 }}>Retour à la boutique</button>
+        </div>
+      )}
       {vendorPage && typeof vendorPage === "object" && vendorPage.slug && <VendorShopPage supabase={supabase} slug={vendorPage.slug} onAdd={addToCart} onBack={() => { setVendorPage(null); window.history.replaceState({}, "", "/"); }} />}
 
       {/* Bottom Nav */}

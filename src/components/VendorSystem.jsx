@@ -80,7 +80,7 @@ export function VendorRegister({ supabase, user, onDone, onBack }) {
     const { data, error: insertError } = await supabase.from("vendeurs").insert({
       user_id: user.id, nom_boutique: form.nom_boutique, slug,
       whatsapp: form.whatsapp.replace(/\D/g, ""), description: form.description,
-      logo, statut: "approuve",
+      logo, statut: "en_attente",
     }).select().single();
     setLoading(false);
     if (insertError) { setError("Erreur : " + insertError.message); return; }
@@ -159,9 +159,11 @@ export function VendorDashboard({ supabase, vendor, onBack, user }) {
 
   useEffect(() => { loadData(); }, []);
 
-  const totalRevenue = myOrders.reduce((s, o) => s + o.total, 0);
+  const totalRevenue = myOrders.filter(order => order.status === "Livré" || order.status === "Livrée").reduce((sum, order) => sum + (Number(order.total) || 0), 0);
   const totalCommission = Math.round(totalRevenue * COMMISSION_RATE / 100);
   const netRevenue = totalRevenue - totalCommission;
+  const pendingOrders = myOrders.filter(order => order.status === "En cours");
+  const lowStockProducts = myProducts.filter(product => Number(product.stock) <= 5);
   const shopUrl = `https://marche-plus.vercel.app/?boutique=${vendor.slug}`;
 
   const openAdd = () => {
@@ -222,7 +224,7 @@ export function VendorDashboard({ supabase, vendor, onBack, user }) {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F5F2FF" }}>
+    <div className="vendor-dashboard" style={{ minHeight: "100vh", background: "#F5F2FF" }}>
       <style>{`
         @media(max-width:600px){
           .vendor-stats { grid-template-columns: 1fr 1fr !important; }
@@ -232,7 +234,7 @@ export function VendorDashboard({ supabase, vendor, onBack, user }) {
       `}</style>
 
       {/* Header */}
-      <div style={{ background: "linear-gradient(135deg, #4C1D95 0%, #6B21A8 60%, #D4AF37 100%)", padding: "24px 20px", color: "#fff" }}>
+      <div className="vendor-dashboard-hero" style={{ background: "#103B31", padding: "24px 20px", color: "#fff" }}>
         <button onClick={onBack} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", padding: "7px 14px", borderRadius: 99, fontSize: 13, cursor: "pointer", marginBottom: 16, fontWeight: 600 }}>← Retour à Marché+</button>
         <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
           <div style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, flexShrink: 0, overflow: "hidden", border: "3px solid rgba(255,255,255,0.4)" }}>
@@ -244,7 +246,7 @@ export function VendorDashboard({ supabase, vendor, onBack, user }) {
             {vendor.description && <div style={{ fontSize: 13, opacity: 0.8, marginTop: 4 }}>{vendor.description}</div>}
           </div>
         </div>
-        <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 14px", marginTop: 16, display: "flex", alignItems: "center", gap: 10 }}>
+        <div className="vendor-share-row" style={{ background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 14px", marginTop: 16, display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ flex: 1, fontSize: 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", opacity: 0.9 }}>{shopUrl}</span>
           <button onClick={copyLink} style={{ background: copied ? "#D4AF37" : "rgba(255,255,255,0.2)", border: "none", color: "#fff", padding: "5px 12px", borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: "pointer", flexShrink: 0 }}>
             {copied ? "✓ Copié !" : "Copier"}
@@ -259,7 +261,7 @@ export function VendorDashboard({ supabase, vendor, onBack, user }) {
       </div>
 
       {/* Tabs */}
-      <div style={{ background: "#fff", borderBottom: "1px solid #E8E0FF", padding: "0 20px", display: "flex", gap: 4, overflowX: "auto" }}>
+      <div className="vendor-dashboard-tabs" style={{ background: "#fff", borderBottom: "1px solid #E8E0FF", padding: "0 20px", display: "flex", gap: 4, overflowX: "auto" }}>
         {TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)} style={{
             padding: "14px 16px", border: "none", background: "transparent", whiteSpace: "nowrap",
@@ -273,11 +275,33 @@ export function VendorDashboard({ supabase, vendor, onBack, user }) {
         ))}
       </div>
 
-      <div style={{ maxWidth: 980, margin: "0 auto", padding: "24px 20px" }}>
+      <div className="vendor-dashboard-content" style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 20px" }}>
 
         {/* VUE D'ENSEMBLE */}
         {tab === "overview" && (
           <>
+            <div className="vendor-overview-heading">
+              <div>
+                <span className="vendor-overview-kicker">ESPACE VENDEUR</span>
+                <h2>Bonjour, {vendor.nom_boutique}</h2>
+                <p>Voici les actions à traiter et l’activité de votre boutique.</p>
+              </div>
+              <button onClick={() => { openAdd(); setTab("products"); }} className="vendor-primary-action">+ Ajouter un produit</button>
+            </div>
+
+            <div className="vendor-quick-actions">
+              <button onClick={() => setTab("orders")} className={pendingOrders.length ? "vendor-action-tile is-alert" : "vendor-action-tile"}>
+                <span className="vendor-action-icon">📦</span>
+                <span className="vendor-action-copy"><strong>Commandes à traiter</strong><small>{pendingOrders.length ? "À préparer ou confirmer" : "Vous êtes à jour"}</small></span>
+                <span className="vendor-action-count">{pendingOrders.length}</span>
+              </button>
+              <button onClick={() => setTab("products")} className={lowStockProducts.length ? "vendor-action-tile is-alert" : "vendor-action-tile"}>
+                <span className="vendor-action-icon">🏷</span>
+                <span className="vendor-action-copy"><strong>Stock à surveiller</strong><small>{lowStockProducts.length ? "5 articles ou moins" : "Aucune alerte de stock"}</small></span>
+                <span className="vendor-action-count">{lowStockProducts.length}</span>
+              </button>
+            </div>
+
             <div className="vendor-stats" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px,1fr))", gap: 14, marginBottom: 24 }}>
               {[
                 { label: "Revenus bruts", value: fmt(totalRevenue), icon: "💰", color: "#1a56db", bg: "#e8f0fe" },
@@ -286,7 +310,7 @@ export function VendorDashboard({ supabase, vendor, onBack, user }) {
                 { label: "Produits", value: myProducts.length, icon: "🏷", color: "#6B21A8", bg: "#EDE9FE" },
                 { label: "Commandes", value: myOrders.length, icon: "📦", color: "#D4AF37", bg: "#FEF3C7" },
               ].map(m => (
-                <div key={m.label} style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8E0FF", padding: "18px 16px", position: "relative", overflow: "hidden" }}>
+                <div key={m.label} className="vendor-dashboard-stat" style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8E0FF", padding: "18px 16px", position: "relative", overflow: "hidden" }}>
                   <div style={{ position: "absolute", top: 0, left: 0, width: 4, height: "100%", background: m.color, borderRadius: "16px 0 0 16px" }} />
                   <div style={{ fontSize: 26, marginBottom: 8 }}>{m.icon}</div>
                   <div style={{ fontWeight: 800, fontSize: 18, color: m.color }}>{m.value}</div>

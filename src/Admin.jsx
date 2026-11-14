@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import * as XLSX from "xlsx";
 import { createClient } from "@supabase/supabase-js";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
@@ -12,11 +11,10 @@ const COMMISSION     = 10;
 
 const fmt = (n) => new Intl.NumberFormat("fr-FR").format(n) + " FCFA";
 const orderAmount = (order) => Number(order?.total) || 0;
-const isCancelled = (order) => order?.status === "Annulé";
-const salesOrders = (orders) => orders.filter(order => !isCancelled(order));
+const isDeliveredStatus = (status) => status === "Livré" || status === "Livrée";
+const salesOrders = (orders) => orders.filter(order => isDeliveredStatus(order.status));
 const totalSales = (orders) => salesOrders(orders).reduce((sum, order) => sum + orderAmount(order), 0);
 const commissionAmount = (orders) => Math.round(totalSales(orders) * COMMISSION / 100);
-const isDeliveredStatus = (status) => status === "Livré" || status === "Livrée";
 const isDeliveryPending = (status) => status === "En cours" || status === "En transit";
 
 const STATUS_COLORS = {
@@ -387,8 +385,8 @@ function ImageUploader({ currentImage, onImageChange }) {
 }
 
 
-// ─── Export Excel ─────────────────────────────────────────────────
-function exportToExcel(orders, type = "commandes") {
+// ─── Export CSV ───────────────────────────────────────────────────
+function exportToCsv(orders, type = "commandes") {
   const data = orders.map(o => ({
     "ID Commande":    o.id,
     "Date":           o.date,
@@ -403,18 +401,25 @@ function exportToExcel(orders, type = "commandes") {
     "Statut":         o.status,
   }));
 
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-
-  // Style colonnes
-  ws["!cols"] = [
-    { wch: 14 }, { wch: 12 }, { wch: 20 }, { wch: 16 },
-    { wch: 30 }, { wch: 15 }, { wch: 8 }, { wch: 14 },
-    { wch: 16 }, { wch: 14 }, { wch: 12 },
-  ];
-
-  XLSX.utils.book_append_sheet(wb, ws, "Commandes");
-  XLSX.writeFile(wb, `marche-plus-${type}-${new Date().toISOString().slice(0,10)}.xlsx`);
+  const headers = Object.keys(data[0] || {
+    "ID Commande": "", "Date": "", "Client": "", "Téléphone": "",
+    "Adresse": "", "Paiement": "", "Articles": "", "Total (FCFA)": "",
+    "Commission (FCFA)": "", "Net (FCFA)": "", "Statut": "",
+  });
+  const escapeCell = value => {
+    const text = String(value ?? "");
+    const safeText = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
+    return `"${safeText.replaceAll('"', '""')}"`;
+  };
+  const csv = [headers, ...data.map(row => headers.map(header => row[header]))]
+    .map(row => row.map(escapeCell).join(";"))
+    .join("\r\n");
+  const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `marche-plus-${type}-${new Date().toISOString().slice(0,10)}.csv`;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 // ─── Dashboard ────────────────────────────────────────────────
@@ -660,7 +665,7 @@ Merci de votre confiance ! 🛍
                 <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 2 }}>Bonjour, Admin 👋</h2>
                 <p style={{ fontSize: 13, color: "#888" }}>Voici l'activité de Marché+ · {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
               </div>
-              <button onClick={() => exportToExcel(orders)} style={{ background: "#0a7c45", color: "#fff", border: "none", padding: "9px 16px", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer" }}>
+              <button onClick={() => exportToCsv(orders)} style={{ background: "#0a7c45", color: "#fff", border: "none", padding: "9px 16px", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer" }}>
                 📊 Exporter toutes les commandes
               </button>
               <div style={{ display: "flex", gap: 6, background: "#fff", borderRadius: 10, padding: 4, border: "1px solid #ebebeb" }}>
@@ -895,10 +900,10 @@ Merci de votre confiance ! 🛍
               </div>
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 <input placeholder="🔍 Rechercher..." value={searchOrder} onChange={e => setSearchOrder(e.target.value)} style={{ padding: "10px 16px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 13, width: 220 }} />
-                <button onClick={() => exportToExcel(orders)} style={{ background: "#0a7c45", color: "#fff", border: "none", padding: "10px 18px", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
-                  📊 Exporter Excel
+                <button onClick={() => exportToCsv(orders)} style={{ background: "#0a7c45", color: "#fff", border: "none", padding: "10px 18px", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
+                  📊 Exporter CSV
                 </button>
-                <button onClick={() => exportToExcel(filteredOrders, "selection")} disabled={filteredOrders.length === orders.length} style={{ background: "#1a56db", color: "#fff", border: "none", padding: "10px 18px", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer", opacity: filteredOrders.length === orders.length ? 0.4 : 1 }}>
+                <button onClick={() => exportToCsv(filteredOrders, "selection")} disabled={filteredOrders.length === orders.length} style={{ background: "#1a56db", color: "#fff", border: "none", padding: "10px 18px", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer", opacity: filteredOrders.length === orders.length ? 0.4 : 1 }}>
                   📋 Exporter sélection
                 </button>
               </div>
