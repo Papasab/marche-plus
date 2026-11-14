@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { VendorRegister, VendorDashboard, VendorShopPage } from "./components/VendorSystem";
 
@@ -65,6 +65,7 @@ function AuthPage({ onAuth }) {
   const [registration, setRegistration] = useState({ name: "", phone: "", shop: "", shopDescription: "", neighborhood: "", category: "Mode" });
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState("");
+  const [showConditions, setShowConditions] = useState(false);
 
   const submit = async () => {
     const normalizedEmail = email.trim().toLowerCase();
@@ -113,6 +114,8 @@ function AuthPage({ onAuth }) {
     });
     if (googleError) setError("Connexion Google indisponible. Activez Google dans Supabase Auth.");
   };
+
+  if (showConditions) return <ConditionsPage onBack={() => setShowConditions(false)} />;
 
   return (
     <div className="store-auth" style={{ minHeight: "100vh", background: "linear-gradient(135deg, #4C1D95 0%, #6B21A8 60%, #D4AF37 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
@@ -175,6 +178,10 @@ function AuthPage({ onAuth }) {
             </span>
           </p>
         </div>
+      </div>
+      <div className="auth-legal">
+        <span>Avant de continuer, consultez nos conditions d’utilisation.</span>
+        <button type="button" onClick={() => setShowConditions(true)}>Lire les conditions d’utilisation</button>
       </div>
     </div>
   );
@@ -794,7 +801,7 @@ function ProductDetailPage({ product: p, onAdd, onBack, isFavorite, onToggleFav,
 
   useEffect(() => {
     if (p) onViewed?.(p);
-  }, [p, onViewed]);
+  }, [p.id, onViewed]);
   useEffect(() => {
     setMainImg(p.image);
     setQty(1);
@@ -1724,13 +1731,13 @@ export default function App() {
   const toggleFavorite = (p) => setFavorites(f => f.find(i => i.id === p.id) ? f.filter(i => i.id !== p.id) : [...f, p]);
   const isFavorite     = (id) => favorites.some(f => f.id === id);
 
-  const addRecentlyViewed = (product) => {
+  const addRecentlyViewed = useCallback((product) => {
     if (!product || !product.id) return;
     setRecentlyViewed(prev => {
       const next = [product, ...prev.filter(item => item.id !== product.id)].slice(0, 4);
       return next;
     });
-  };
+  }, []);
 
   const openProduct = (product) => {
     addRecentlyViewed(product);
@@ -1888,11 +1895,9 @@ export default function App() {
       <FloatingWA />
       <Toast />
       {/* Footer */}
-      {!showProfile && !vendorPage && !showParrainage && (
+      {page === "home" && !selectedProduct && !showProfile && !vendorPage && !showParrainage && (
         <div style={{ background: "#1A0A2E", color: "rgba(255,255,255,0.6)", textAlign: "center", padding: "20px 16px", fontSize: 12, marginTop: 40 }}>
           <div style={{ marginBottom: 8 }}>
-            <span onClick={() => setPage("conditions")} style={{ color: "#D4AF37", cursor: "pointer", fontWeight: 600 }}>Conditions d'utilisation</span>
-            {" · "}
             <a href={`https://wa.me/${WHATSAPP}`} target="_blank" rel="noreferrer" style={{ color: "rgba(255,255,255,0.6)", textDecoration: "none" }}>Contact WhatsApp</a>
           </div>
           <div>© {new Date().getFullYear()} Marché+ Mali — Tous droits réservés</div>
