@@ -109,11 +109,22 @@ input:focus, textarea:focus, select:focus { outline: 3px solid rgba(243, 107, 50
 .auth-terms-consent { display: flex; align-items: flex-start; gap: 10px; margin-top: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: #fff; cursor: pointer; }
 .store-auth .auth-terms-consent input { flex: 0 0 auto; width: 18px; height: 18px; margin: 1px 0 0; padding: 0; accent-color: var(--primary); background: transparent !important; border: 0 !important; border-radius: 4px; box-shadow: none !important; }
 .store-auth .auth-terms-consent span { color: var(--ink) !important; font-size: 12px; font-weight: 600; line-height: 1.45; }
+.auth-brand { margin-bottom: 28px; text-align: center; }
+.auth-brand-name { display: flex; justify-content: center; align-items: center; gap: 9px; margin-bottom: 18px; color: #fff; font: 700 20px 'Space Grotesk', sans-serif; }
+.auth-brand-name > span { color: #fff !important; }
+.auth-brand-name > span > span { color: #a7ddc5 !important; }
+.auth-greeting-label { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 9px; color: #b9ead3; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+.auth-brand h1 { margin: 0 auto 8px; max-width: 430px; color: #fff; font-size: 29px; line-height: 1.12; }
+.auth-brand p { max-width: 360px; margin: 0 auto; color: rgba(255,255,255,.72); font-size: 13px; line-height: 1.5; }
 
 @media (max-width: 480px) {
   .store-auth { padding: 18px 14px !important; }
-  .store-auth > div { max-width: 100% !important; }
-  .store-auth > div > div:first-child { margin-bottom: 20px !important; }
+  .store-auth { justify-content: flex-start !important; overflow-x: hidden !important; overflow-y: auto !important; min-height: 100vh !important; min-height: 100svh !important; }
+  .store-auth > div { max-width: 100% !important; margin: auto 0; }
+  .auth-brand { margin-bottom: 20px; }
+  .auth-brand-name { margin-bottom: 13px; }
+  .auth-brand h1 { font-size: 25px; }
+  .auth-brand p { font-size: 12px; }
   .store-auth > div > div:last-child { padding: 24px 18px !important; }
   .auth-terms-content { max-height: 150px; }
 }

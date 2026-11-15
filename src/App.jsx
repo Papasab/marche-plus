@@ -56,7 +56,7 @@ function ConditionsPage({ onBack }) {
 
 // ── Auth ──────────────────────────────────────────────────────────
 function AuthPage({ onAuth }) {
-  const hour = new Date().getHours();
+  const hour = Number(new Intl.DateTimeFormat("fr-FR", { hour: "numeric", hourCycle: "h23", timeZone: "Africa/Bamako" }).format(new Date()));
   const greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir";
   const emoji = hour < 12 ? "🌅" : hour < 18 ? "☀️" : "🌙";
   const [mode, setMode]       = useState("login");
@@ -131,13 +131,13 @@ function AuthPage({ onAuth }) {
   return (
     <div className="store-auth" style={{ minHeight: "100vh", background: "linear-gradient(135deg, #4C1D95 0%, #6B21A8 60%, #D4AF37 100%)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <div style={{ width: "100%", maxWidth: 420 }}>
-        <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <img src="/logo.png" alt="Marché+" style={{ height: 80, objectFit: "contain", marginBottom: 12 }} onError={e => e.target.style.display="none"} />
-          <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 99, padding: "8px 20px", display: "inline-block", marginBottom: 12, fontSize: 15, color: "#fff", fontWeight: 600 }}>
-            {emoji} {greeting} ! Bienvenue sur Marché+
+        <div className="auth-brand">
+          <div className="auth-brand-name">
+            <span>Marché<span>+</span></span>
           </div>
-          <h1 style={{ fontWeight: 900, fontSize: 32, color: "#fff", letterSpacing: "-1px" }}>Marché+</h1>
-          <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, marginTop: 4 }}>VOS ACCESSOIRES, VOTRE STYLE.</p>
+          <div className="auth-greeting-label"><span aria-hidden="true">{emoji}</span>{greeting} · Marché+ Mali</div>
+          <h1>{mode === "login" ? "Heureux de vous revoir." : "Bienvenue dans la communauté."}</h1>
+          <p>{mode === "login" ? "Retrouvez vos boutiques et produits préférés." : "Découvrez les boutiques locales et partagez vos trouvailles."}</p>
         </div>
         <div style={{ background: "#fff", borderRadius: 24, padding: "32px 28px", boxShadow: "0 24px 60px rgba(0,0,0,0.2)" }}>
           <h2 style={{ fontWeight: 800, fontSize: 22, marginBottom: 6, color: "#1A0A2E" }}>{mode === "login" ? "Connexion" : "Créer un compte"}</h2>
